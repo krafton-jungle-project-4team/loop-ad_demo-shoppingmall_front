@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AdSlotConfig } from "@/config/ad-slots";
+import { emitAdClick, emitAdImpression, isAdElementVisible } from "@/lib/ad-events";
 import { cn } from "@/lib/utils";
 
 type AdSlotProps = {
@@ -18,6 +19,34 @@ export function AdSlot({
   useMobileSource = false,
 }: AdSlotProps) {
   const [isImageReady, setIsImageReady] = useState(false);
+  const linkRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    const element = linkRef.current;
+
+    if (!element || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (
+          entry?.isIntersecting &&
+          entry.intersectionRatio >= 0.5 &&
+          isAdElementVisible(element)
+        ) {
+          emitAdImpression(slot);
+        }
+      },
+      { threshold: 0.5 },
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [slot]);
 
   return (
     <a
@@ -27,6 +56,8 @@ export function AdSlot({
         className,
       )}
       href={slot.href}
+      onClick={() => emitAdClick(slot)}
+      ref={linkRef}
     >
       <picture>
         {useMobileSource && slot.mobileSrc ? (
@@ -47,7 +78,7 @@ export function AdSlot({
       </picture>
 
       <span
-        aria-hidden={isImageReady}
+        aria-hidden="true"
         className={cn(
           "absolute inset-0 flex flex-col items-center justify-center gap-1 px-4 text-center",
           "bg-surface text-surface-foreground",
