@@ -1,12 +1,15 @@
-function IconButton({ label, children }: { label: string; children: string }) {
+import { Search, ShoppingCart, Store, User, type LucideIcon } from "lucide-react";
+
+function IconButton({ Icon, label }: { Icon: LucideIcon; label: string }) {
   return (
     <button
       aria-label={label}
       className="grid size-10 place-items-center rounded-md border border-border bg-card text-sm font-semibold text-foreground"
       disabled
+      title={label}
       type="button"
     >
-      <span aria-hidden="true">{children}</span>
+      <Icon aria-hidden="true" size={18} strokeWidth={2.25} />
     </button>
   );
 }
@@ -21,7 +24,7 @@ export function SiteHeader() {
               aria-hidden="true"
               className="grid size-9 place-items-center rounded-md bg-brand text-sm font-bold text-brand-foreground"
             >
-              L
+              <Store size={18} strokeWidth={2.25} />
             </div>
             <span className="text-base font-semibold tracking-normal text-foreground">
               Loop Market
@@ -33,9 +36,7 @@ export function SiteHeader() {
               검색
             </label>
             <div className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-input bg-surface px-3 text-muted-foreground">
-              <span aria-hidden="true" className="text-sm">
-                /
-              </span>
+              <Search aria-hidden="true" size={16} strokeWidth={2.25} />
               <input
                 aria-label="검색"
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -47,8 +48,8 @@ export function SiteHeader() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <IconButton label="사용자 메뉴">U</IconButton>
-            <IconButton label="장바구니">B</IconButton>
+            <IconButton Icon={User} label="사용자 메뉴" />
+            <IconButton Icon={ShoppingCart} label="장바구니" />
           </div>
         </div>
 
