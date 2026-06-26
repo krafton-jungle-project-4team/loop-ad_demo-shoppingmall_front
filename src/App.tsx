@@ -1,10 +1,12 @@
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { ShoppingShell } from "@/components/layout/ShoppingShell";
+
 function App() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-6">
-        <p className="text-sm text-muted-foreground">Ad slot demo foundation</p>
-      </div>
-    </main>
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteHeader />
+      <ShoppingShell />
+    </div>
   );
 }
 
