@@ -45,11 +45,13 @@ export function createOrderId(existingOrders: Order[], now = new Date()): string
 }
 
 export function buildOrder(input: CreateOrderInput, existingOrders: Order[]): Order {
+  const createdAt = input.createdAt ?? new Date().toISOString();
+
   return {
-    id: createOrderId(existingOrders),
-    items: input.items,
+    id: createOrderId(existingOrders, new Date(createdAt)),
+    items: input.items.map((item) => ({ ...item })),
     totalAmount: input.totalAmount,
-    createdAt: input.createdAt ?? new Date().toISOString(),
+    createdAt,
     status: input.status ?? "paid",
   };
 }

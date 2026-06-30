@@ -1,62 +1,15 @@
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { getCategoryById, getProductById } from "@/fixtures/product-helpers";
 import { useCartStore } from "@/state/cart-context";
-import type { CartItem, Product } from "@/types/commerce";
-import { formatMoney, getProductUnitPrice } from "@/utils/money";
-
-const FREE_SHIPPING_THRESHOLD = 30000;
-const SHIPPING_FEE = 3000;
-
-type CartRow = {
-  item: CartItem;
-  product: Product;
-  categoryName: string;
-  optionLabel: string;
-  unitPrice: number;
-  lineTotal: number;
-};
-
-function getOptionLabel(product: Product, optionId?: string): string {
-  if (!optionId) {
-    return "기본";
-  }
-
-  return product.options?.find((option) => option.id === optionId)?.label ?? optionId;
-}
-
-function buildCartRows(items: CartItem[]): CartRow[] {
-  return items.flatMap((item) => {
-    const product = getProductById(item.productId);
-
-    if (!product) {
-      return [];
-    }
-
-    const unitPrice = getProductUnitPrice(product, item.option);
-
-    return [
-      {
-        item,
-        product,
-        categoryName: getCategoryById(product.categoryId)?.name ?? "상품",
-        optionLabel: getOptionLabel(product, item.option),
-        unitPrice,
-        lineTotal: unitPrice * item.quantity,
-      },
-    ];
-  });
-}
+import { formatMoney } from "@/utils/money";
+import { buildCommerceLineItems, calculateOrderAmounts } from "@/utils/order-summary";
 
 export function CartPage() {
   const { items, itemCount, updateQuantity, removeItem, clearCart } = useCartStore();
-  const cartRows = buildCartRows(items);
-  const subtotal = cartRows.reduce((total, row) => total + row.lineTotal, 0);
-  const shippingFee =
-    subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD ? SHIPPING_FEE : 0;
-  const totalAmount = subtotal + shippingFee;
-  const amountUntilFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
+  const cartRows = buildCommerceLineItems(items);
+  const { subtotal, shippingFee, totalAmount, amountUntilFreeShipping } =
+    calculateOrderAmounts(items);
 
   if (cartRows.length === 0) {
     return (
