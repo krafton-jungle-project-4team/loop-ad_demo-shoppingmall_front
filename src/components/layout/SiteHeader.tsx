@@ -3,6 +3,7 @@ import { type FormEvent, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/state/cart-context";
 
 const primaryNavigation = [
   { to: "/", label: "홈", end: true },
@@ -21,7 +22,9 @@ const categoryNavigation = [
 
 export function SiteHeader() {
   const navigate = useNavigate();
+  const { itemCount } = useCartStore();
   const [keyword, setKeyword] = useState("");
+  const cartBadgeLabel = itemCount > 99 ? "99+" : String(itemCount);
 
   function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -75,10 +78,15 @@ export function SiteHeader() {
           <div className="hidden items-center gap-2 lg:flex">
             <Link
               to="/cart"
-              className="inline-flex size-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              aria-label="장바구니"
+              className="relative inline-flex size-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label={`장바구니 ${itemCount}개`}
             >
               <ShoppingCart aria-hidden="true" className="size-5" />
+              {itemCount > 0 ? (
+                <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground">
+                  {cartBadgeLabel}
+                </span>
+              ) : null}
             </Link>
             <Link
               to="/orders/demo-order"

@@ -2,6 +2,7 @@ import { Minus, Plus, ShoppingCart, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
+import { AppDialog } from "@/components/common/AppDialog";
 import { ProductCard } from "@/components/commerce/ProductCard";
 import {
   getCategoryById,
@@ -16,7 +17,7 @@ type ProductPurchaseState = {
   productId?: string;
   selectedOptionId?: string;
   quantity: number;
-  feedbackMessage: string | null;
+  dialogType: "cart-added" | "option-required" | null;
 };
 
 export function ProductDetailPage() {
@@ -28,7 +29,7 @@ export function ProductDetailPage() {
   const [purchaseState, setPurchaseState] = useState<ProductPurchaseState>({
     productId,
     quantity: 1,
-    feedbackMessage: null,
+    dialogType: null,
   });
   const relatedProducts = useMemo(() => {
     if (!product) {
@@ -67,11 +68,10 @@ export function ProductDetailPage() {
     product.options?.some((option) => option.id === purchaseState.selectedOptionId)
       ? purchaseState.selectedOptionId
       : undefined;
-  const selectedOptionId = selectedOptionState ?? product.options?.[0]?.id;
+  const selectedOptionId = selectedOptionState;
   const quantity = purchaseStateMatchesProduct ? purchaseState.quantity : 1;
-  const feedbackMessage = purchaseStateMatchesProduct
-    ? purchaseState.feedbackMessage
-    : null;
+  const dialogType = purchaseStateMatchesProduct ? purchaseState.dialogType : null;
+  const requiresOption = Boolean(product.options?.length);
   const discountRate = getDiscountRate(product.originalPrice, product.price);
   const selectedOption = product.options?.find(
     (option) => option.id === selectedOptionId,
@@ -84,30 +84,61 @@ export function ProductDetailPage() {
       productId: currentProduct.id,
       selectedOptionId,
       quantity: Math.min(99, Math.max(1, nextQuantity)),
-      feedbackMessage: null,
+      dialogType: null,
     });
   }
 
-  function addSelectedProductToCart() {
+  function closeDialog() {
+    setPurchaseState({
+      productId: currentProduct.id,
+      selectedOptionId,
+      quantity,
+      dialogType: null,
+    });
+  }
+
+  function openOptionRequiredDialog() {
+    setPurchaseState({
+      productId: currentProduct.id,
+      selectedOptionId,
+      quantity,
+      dialogType: "option-required",
+    });
+  }
+
+  function addSelectedProductToCart(): boolean {
+    if (requiresOption && !selectedOptionId) {
+      openOptionRequiredDialog();
+      return false;
+    }
+
     addItem({
       productId: currentProduct.id,
       option: selectedOptionId,
       quantity,
     });
+
+    return true;
   }
 
   function handleAddToCart() {
-    addSelectedProductToCart();
+    if (!addSelectedProductToCart()) {
+      return;
+    }
+
     setPurchaseState({
       productId: currentProduct.id,
       selectedOptionId,
       quantity,
-      feedbackMessage: "선택한 상품을 장바구니에 담았습니다.",
+      dialogType: "cart-added",
     });
   }
 
   function handleBuyNow() {
-    addSelectedProductToCart();
+    if (!addSelectedProductToCart()) {
+      return;
+    }
+
     navigate("/checkout");
   }
 
@@ -199,7 +230,7 @@ export function ProductDetailPage() {
                             productId: currentProduct.id,
                             selectedOptionId: option.id,
                             quantity,
-                            feedbackMessage: null,
+                            dialogType: null,
                           })
                         }
                         className="sr-only"
@@ -260,12 +291,6 @@ export function ProductDetailPage() {
               ) : null}
             </div>
 
-            {feedbackMessage ? (
-              <p className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground">
-                {feedbackMessage}
-              </p>
-            ) : null}
-
             <div className="grid gap-2 sm:grid-cols-2">
               <button
                 type="button"
@@ -287,6 +312,56 @@ export function ProductDetailPage() {
           </div>
         </div>
       </section>
+
+      <AppDialog
+        open={dialogType === "option-required"}
+        title="옵션을 선택해주세요"
+        description="이 상품은 옵션을 선택한 뒤 장바구니에 담을 수 있습니다."
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            closeDialog();
+          }
+        }}
+        actions={
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            onClick={closeDialog}
+            autoFocus
+          >
+            확인
+          </button>
+        }
+      />
+
+      <AppDialog
+        open={dialogType === "cart-added"}
+        title="장바구니에 담았습니다"
+        description="선택한 상품과 수량이 장바구니에 반영되었습니다."
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            closeDialog();
+          }
+        }}
+        actions={
+          <>
+            <button
+              type="button"
+              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              onClick={closeDialog}
+            >
+              계속 쇼핑하기
+            </button>
+            <Link
+              className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              to="/cart"
+              autoFocus
+            >
+              장바구니 보기
+            </Link>
+          </>
+        }
+      />
 
       <section className="grid gap-4 rounded-md border border-border bg-card p-5 shadow-sm sm:p-6 lg:grid-cols-3">
         <div>

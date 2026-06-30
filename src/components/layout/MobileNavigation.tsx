@@ -2,6 +2,7 @@ import { Grid3X3, Home, ReceiptText, ShoppingCart } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/state/cart-context";
 
 const mobileItems = [
   { to: "/", label: "홈", icon: Home },
@@ -11,6 +12,9 @@ const mobileItems = [
 ];
 
 export function MobileNavigation() {
+  const { itemCount } = useCartStore();
+  const cartBadgeLabel = itemCount > 99 ? "99+" : String(itemCount);
+
   return (
     <nav
       aria-label="모바일 주요 메뉴"
@@ -29,8 +33,15 @@ export function MobileNavigation() {
                 isActive && "bg-accent text-accent-foreground",
               )
             }
-          >
-            <Icon aria-hidden="true" className="size-5" />
+            >
+            <span className="relative">
+              <Icon aria-hidden="true" className="size-5" />
+              {to === "/cart" && itemCount > 0 ? (
+                <span className="absolute -right-2 -top-2 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-primary-foreground">
+                  {cartBadgeLabel}
+                </span>
+              ) : null}
+            </span>
             <span>{label}</span>
           </NavLink>
         ))}
