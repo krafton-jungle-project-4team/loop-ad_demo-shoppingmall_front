@@ -89,3 +89,16 @@ npm run lint
 npm run test
 npm run build
 ```
+
+## 배포하기
+
+`main` 브랜치에 push되면 GitHub Actions가 `npm run verify`를 통과한 뒤 `npm run build`로 `dist`를 만들고, 인프라 레포의 reusable frontend deploy workflow를 호출해 S3와 CloudFront로 배포합니다. 수동 배포가 필요하면 `Deploy Demo Shoppingmall Web` workflow를 `workflow_dispatch`로 실행합니다.
+
+배포 대상 값은 repository variables로 관리합니다.
+
+```text
+LOOPAD_DEV_AWS_REGION
+LOOPAD_DEV_DEPLOY_ROLE_ARN
+LOOPAD_DEMO_SHOPPINGMALL_WEB_S3_BUCKET
+LOOPAD_DEMO_SHOPPINGMALL_WEB_CLOUDFRONT_DISTRIBUTION_ID
+```
