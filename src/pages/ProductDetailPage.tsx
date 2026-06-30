@@ -1,5 +1,5 @@
 import { Minus, Plus, ShoppingCart, Zap } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { AppDialog } from "@/components/common/AppDialog";
@@ -11,6 +11,7 @@ import {
 } from "@/fixtures/product-helpers";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/state/cart-context";
+import { trackAddToCart, trackProductView } from "@/utils/commerce-events";
 import { formatMoney, getDiscountRate, getProductUnitPrice } from "@/utils/money";
 
 type ProductPurchaseState = {
@@ -39,6 +40,14 @@ export function ProductDetailPage() {
     return getProductsByCategory(product.categoryId)
       .filter((relatedProduct) => relatedProduct.id !== product.id)
       .slice(0, 4);
+  }, [product]);
+
+  useEffect(() => {
+    if (!product) {
+      return;
+    }
+
+    trackProductView(product);
   }, [product]);
 
   if (!product) {
@@ -117,6 +126,7 @@ export function ProductDetailPage() {
       option: selectedOptionId,
       quantity,
     });
+    trackAddToCart(currentProduct, selectedOptionId, quantity);
 
     return true;
   }

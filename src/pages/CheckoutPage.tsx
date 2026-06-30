@@ -1,10 +1,11 @@
 import { CreditCard, Home, PackageCheck, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { AppDialog } from "@/components/common/AppDialog";
 import { useCartStore } from "@/state/cart-context";
 import { useOrderStore } from "@/state/order-context";
+import { trackCheckoutStart, trackPurchase } from "@/utils/commerce-events";
 import { formatMoney } from "@/utils/money";
 import { buildCommerceLineItems, calculateOrderAmounts } from "@/utils/order-summary";
 
@@ -22,9 +23,13 @@ export function CheckoutPage() {
   const { items, itemCount } = useCartStore();
   const { createOrder } = useOrderStore();
   const [isConfirmOpen, setConfirmOpen] = useState(false);
-  const lineItems = buildCommerceLineItems(items);
-  const orderItems = lineItems.map(({ item }) => item);
+  const lineItems = useMemo(() => buildCommerceLineItems(items), [items]);
+  const orderItems = useMemo(() => lineItems.map(({ item }) => item), [lineItems]);
   const { subtotal, shippingFee, totalAmount } = calculateOrderAmounts(orderItems);
+
+  useEffect(() => {
+    trackCheckoutStart(orderItems);
+  }, [orderItems]);
 
   if (lineItems.length === 0) {
     return <Navigate to="/cart" replace />;
@@ -36,6 +41,7 @@ export function CheckoutPage() {
       totalAmount,
     });
 
+    trackPurchase(order);
     setConfirmOpen(false);
     navigate(`/order-complete?orderId=${order.id}`, {
       state: {
