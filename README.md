@@ -10,7 +10,7 @@ Loop Shop Demo Front는 Loop Ad SDK를 실제 쇼핑몰 UI에 붙여 보는 Reac
 - 홈 화면의 `C1_MAIN_TOP`, `W1_WING` 광고 지면을 렌더링합니다.
 - Event SDK를 앱 시작 시 초기화합니다.
 - Advertisement SDK가 광고 지면을 채우도록 target DOM을 넘깁니다.
-- SDK 로드, 광고 요청, 광고 렌더링이 실패하면 로컬 fallback 광고를 유지합니다.
+- SDK 로드, 광고 요청, 광고 렌더링이 실패하면 로컬 fallback 광고 decision으로 대체합니다.
 
 SDK 패키지 배포, Event Collector 배포, 광고 API 배포, 인프라 endpoint 계약은 이 프론트 레포의 책임 범위가 아닙니다. 해당 값이 바뀌었는지는 실제 SDK/API 배포 결과를 기준으로 확인합니다.
 
@@ -57,7 +57,7 @@ Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 
 5. 광고 API가 비어 있거나 실패할 때 로컬 fallback 광고가 남아 있는지 확인합니다.
 6. 광고 노출과 클릭 이벤트가 Event SDK를 통해 전송되는지 확인합니다.
 
-fallback 광고의 노출/클릭도 같은 이벤트 이름으로 추적합니다.
+fallback 광고의 노출/클릭도 같은 이벤트 이름으로 추적하며, fallback용 tracking id와 `source: "advertisement_fallback"` 속성을 함께 보냅니다.
 
 ```ts
 sdk.track("ad_impression", {
