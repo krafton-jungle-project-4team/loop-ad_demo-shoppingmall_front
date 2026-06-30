@@ -1,8 +1,9 @@
+import { SAMPLE_ORDER_ID } from "@/config/demo-routes";
 import type { Order } from "@/types/commerce";
 
 export const sampleOrders: Order[] = [
   {
-    id: "ORD-2026-0001",
+    id: SAMPLE_ORDER_ID,
     items: [
       {
         productId: "fresh-salad-kit",

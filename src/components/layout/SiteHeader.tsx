@@ -2,6 +2,7 @@ import { Search, ShoppingCart, UserRound } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
+import { SAMPLE_ORDER_PATH } from "@/config/demo-routes";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/state/cart-context";
 
@@ -89,7 +90,7 @@ export function SiteHeader() {
               ) : null}
             </Link>
             <Link
-              to="/orders/demo-order"
+              to={SAMPLE_ORDER_PATH}
               className="inline-flex size-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               aria-label="주문 내역"
             >
