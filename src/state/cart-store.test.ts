@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { cartReducer, getCartItemCount, normalizeQuantity } from "@/state/cart-core";
+import {
+  cartReducer,
+  getCartItemCount,
+  getCartSubtotal,
+  normalizeQuantity,
+} from "@/state/cart-core";
 
 describe("cart store reducer", () => {
   it("merges matching product and option items", () => {
@@ -51,5 +56,62 @@ describe("cart store reducer", () => {
         },
       ]),
     ).toBe(5);
+  });
+
+  it("updates and removes matching product option items", () => {
+    const updatedState = cartReducer(
+      {
+        items: [
+          {
+            productId: "fresh-salad-kit",
+            option: "single",
+            quantity: 2,
+          },
+          {
+            productId: "fresh-salad-kit",
+            option: "family",
+            quantity: 1,
+          },
+        ],
+      },
+      {
+        type: "updateQuantity",
+        productId: "fresh-salad-kit",
+        option: "family",
+        quantity: 3,
+      },
+    );
+
+    expect(updatedState.items).toContainEqual({
+      productId: "fresh-salad-kit",
+      option: "family",
+      quantity: 3,
+    });
+
+    expect(
+      cartReducer(updatedState, {
+        type: "remove",
+        productId: "fresh-salad-kit",
+        option: "single",
+      }).items,
+    ).toEqual([
+      {
+        productId: "fresh-salad-kit",
+        option: "family",
+        quantity: 3,
+      },
+    ]);
+  });
+
+  it("calculates subtotal with option price deltas", () => {
+    expect(
+      getCartSubtotal([
+        {
+          productId: "fresh-salad-kit",
+          option: "family",
+          quantity: 2,
+        },
+      ]),
+    ).toBe(39800);
   });
 });
