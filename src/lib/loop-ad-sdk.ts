@@ -128,7 +128,8 @@ const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
 const DEMO_IDENTITY_STORAGE_KEY = "loop-ad-demo-identity";
 const DEFAULT_PROJECT_ID = "demo-shoppingmall";
-const DEFAULT_AD_API_BASE_URL = "https://dashboard.dev.loop-ad.org/api";
+const DEFAULT_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
+const DEV_AD_API_BASE_URL = "/api";
 const DEFAULT_CHANNEL = "demo-shoppingmall";
 
 const scriptLoaders = new Map<string, Promise<void>>();
@@ -140,7 +141,8 @@ export const loopAdSdkConfig = {
   advertisementSdkUrl: LOOP_AD_ADVERTISEMENT_SDK_URL,
   projectId: textEnv(import.meta.env.VITE_LOOP_AD_PROJECT_ID) ?? DEFAULT_PROJECT_ID,
   advertisementApiBaseUrl:
-    textEnv(import.meta.env.VITE_LOOP_AD_AD_API_BASE_URL) ?? DEFAULT_AD_API_BASE_URL,
+    textEnv(import.meta.env.VITE_LOOP_AD_AD_API_BASE_URL) ??
+    (import.meta.env.DEV ? DEV_AD_API_BASE_URL : DEFAULT_AD_API_BASE_URL),
   debug:
     textEnv(import.meta.env.VITE_LOOP_AD_DEBUG) === "true" ||
     import.meta.env.DEV,
