@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { AppDialog } from "@/components/common/AppDialog";
+import { ProductImage } from "@/components/commerce/ProductImage";
 import { useCartStore } from "@/state/cart-context";
 import { useOrderStore } from "@/state/order-context";
 import { trackCheckoutStart, trackPurchase } from "@/utils/commerce-events";
@@ -101,8 +102,13 @@ export function CheckoutPage() {
             {lineItems.map(({ item, product, optionLabel, unitPrice, lineTotal }) => (
               <article
                 key={`${item.productId}:${item.option ?? "default"}`}
-                className="grid gap-3 rounded-md border border-border bg-background p-4 sm:grid-cols-[minmax(0,1fr)_8rem]"
+                className="grid gap-3 rounded-md border border-border bg-background p-4 sm:grid-cols-[4.5rem_minmax(0,1fr)_8rem]"
               >
+                <ProductImage
+                  product={product}
+                  className="aspect-square"
+                  decorative
+                />
                 <div className="min-w-0">
                   <Link
                     to={`/products/${product.id}`}

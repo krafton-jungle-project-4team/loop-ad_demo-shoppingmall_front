@@ -60,14 +60,29 @@ export function PromotionPage() {
             </div>
           </div>
 
-          <div
-            className="grid min-h-52 place-items-center rounded-md bg-muted p-5"
-            aria-hidden="true"
-          >
-            <div className="flex size-full items-center justify-center rounded-md border border-border bg-background text-sm font-semibold text-muted-foreground">
-              {promotion.id}
+          {promotion.heroImage ? (
+            <div
+              className="min-h-52 overflow-hidden rounded-md bg-muted"
+              aria-hidden="true"
+            >
+              <img
+                src={promotion.heroImage}
+                alt=""
+                loading="eager"
+                decoding="async"
+                className="size-full object-cover"
+              />
             </div>
-          </div>
+          ) : (
+            <div
+              className="grid min-h-52 place-items-center rounded-md bg-muted p-5"
+              aria-hidden="true"
+            >
+              <div className="flex size-full items-center justify-center rounded-md border border-border bg-background text-sm font-semibold text-muted-foreground">
+                {promotion.id}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

@@ -16,6 +16,7 @@ export type Product = {
   id: string;
   name: string;
   categoryId: string;
+  imageUrl: string;
   price: number;
   originalPrice?: number;
   badges?: string[];

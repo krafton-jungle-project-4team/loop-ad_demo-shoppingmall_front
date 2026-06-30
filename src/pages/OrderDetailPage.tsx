@@ -1,6 +1,7 @@
 import { ClipboardList, Headphones, MapPin, ReceiptText } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
+import { ProductImage } from "@/components/commerce/ProductImage";
 import { cn } from "@/lib/utils";
 import { useOrderStore } from "@/state/order-context";
 import type { OrderStatus } from "@/types/commerce";
@@ -146,8 +147,13 @@ export function OrderDetailPage() {
             {lineItems.map(({ item, product, optionLabel, unitPrice, lineTotal }) => (
               <article
                 key={`${item.productId}:${item.option ?? "default"}`}
-                className="grid gap-3 rounded-md border border-border bg-background p-4 sm:grid-cols-[minmax(0,1fr)_8rem]"
+                className="grid gap-3 rounded-md border border-border bg-background p-4 sm:grid-cols-[4.5rem_minmax(0,1fr)_8rem]"
               >
+                <ProductImage
+                  product={product}
+                  className="aspect-square"
+                  decorative
+                />
                 <div className="min-w-0">
                   <Link
                     to={`/products/${product.id}`}

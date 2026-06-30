@@ -1,6 +1,7 @@
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { ProductImage } from "@/components/commerce/ProductImage";
 import { useCartStore } from "@/state/cart-context";
 import { formatMoney } from "@/utils/money";
 import { buildCommerceLineItems, calculateOrderAmounts } from "@/utils/order-summary";
@@ -61,19 +62,16 @@ export function CartPage() {
 
         <div className="flex flex-col gap-3">
           {cartRows.map(
-            ({ item, product, categoryName, optionLabel, unitPrice, lineTotal }) => (
+            ({ item, product, optionLabel, unitPrice, lineTotal }) => (
               <article
                 key={`${item.productId}:${item.option ?? "default"}`}
                 className="grid gap-4 rounded-md border border-border bg-card p-4 shadow-sm sm:grid-cols-[7rem_minmax(0,1fr)]"
               >
-                <div
-                  className="grid aspect-square place-items-center rounded-md bg-muted p-3"
-                  aria-hidden="true"
-                >
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    {categoryName}
-                  </span>
-                </div>
+                <ProductImage
+                  product={product}
+                  className="aspect-square"
+                  decorative
+                />
 
                 <div className="flex min-w-0 flex-col gap-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
