@@ -94,16 +94,16 @@ npm run build
 
 `main` 브랜치에 push되면 GitHub Actions가 `npm run verify`를 통과한 뒤 `npm run build`로 `dist`를 만들고, 인프라 레포의 reusable frontend deploy workflow를 호출해 S3와 CloudFront로 배포합니다. 수동 배포가 필요하면 `Deploy Demo Shoppingmall Web` workflow를 `workflow_dispatch`로 실행합니다.
 
-인프라 가이드에 고정된 값은 workflow 입력에 직접 둡니다.
+dashboard web 배포 workflow와 같은 GitHub Actions variables를 사용합니다.
 
 ```text
-aws_region=ap-northeast-2
-s3_bucket=loop-ad-dev-demo-shoppingmall-web
+LOOPAD_DEV_AWS_REGION
+LOOPAD_DEV_DEPLOY_ROLE_ARN
+LOOPAD_DEMO_SHOPPINGMALL_WEB_CLOUDFRONT_DISTRIBUTION_ID
 ```
 
-ARN과 CloudFront distribution ID는 이 레포에 선택된 GitHub Actions org/repository variables로 관리합니다.
+S3 bucket은 dashboard web 배포처럼 workflow 입력에 직접 둡니다.
 
 ```text
-LOOP_AD_DEV_FRONTEND_DEPLOY_ROLE_ARN
-LOOP_AD_DEV_DEMO_SHOPPINGMALL_WEB_CLOUDFRONT_DISTRIBUTION_ID
+loop-ad-dev-demo-shoppingmall-web
 ```
