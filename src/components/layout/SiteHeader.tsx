@@ -1,8 +1,9 @@
-import { Search, ShoppingCart, UserRound } from "lucide-react";
+import { ReceiptText, Search, ShoppingCart, UserRound } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import { SAMPLE_ORDER_PATH } from "@/config/demo-routes";
+import { useDemoUserProfile } from "@/hooks/useDemoUserProfile";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/state/cart-context";
 
@@ -24,6 +25,7 @@ const categoryNavigation = [
 export function SiteHeader() {
   const navigate = useNavigate();
   const { itemCount } = useCartStore();
+  const selectedProfile = useDemoUserProfile();
   const [keyword, setKeyword] = useState("");
   const cartBadgeLabel = itemCount > 99 ? "99+" : String(itemCount);
 
@@ -90,11 +92,23 @@ export function SiteHeader() {
               ) : null}
             </Link>
             <Link
+              to="/login"
+              className="relative inline-flex size-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label={
+                selectedProfile ? `로그인 ${selectedProfile.label}` : "로그인"
+              }
+            >
+              <UserRound aria-hidden="true" className="size-5" />
+              {selectedProfile ? (
+                <span className="absolute -right-1 -top-1 size-3 rounded-full bg-primary ring-2 ring-background" />
+              ) : null}
+            </Link>
+            <Link
               to={SAMPLE_ORDER_PATH}
               className="inline-flex size-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               aria-label="주문 내역"
             >
-              <UserRound aria-hidden="true" className="size-5" />
+              <ReceiptText aria-hidden="true" className="size-5" />
             </Link>
           </div>
         </div>

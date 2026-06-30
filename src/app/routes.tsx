@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { CartPage } from "@/pages/CartPage";
 import { CheckoutPage } from "@/pages/CheckoutPage";
 import { HomePage } from "@/pages/HomePage";
+import { LoginPage } from "@/pages/LoginPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { OrderCompletePage } from "@/pages/OrderCompletePage";
 import { OrderDetailPage } from "@/pages/OrderDetailPage";
@@ -19,6 +20,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
       },
       {
         path: "products",
