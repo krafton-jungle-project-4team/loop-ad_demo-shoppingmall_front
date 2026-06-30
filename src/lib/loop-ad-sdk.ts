@@ -1,3 +1,8 @@
+import {
+  getSelectedDemoUserProfile,
+  type DemoUserProfile,
+} from "@/lib/demo-user";
+
 type LoopAdPropertyValue =
   | string
   | number
@@ -165,16 +170,10 @@ export function initLoopAdEventSdk(): Promise<LoopAdEventClient> {
         const client = sdk.init({
           projectId: loopAdSdkConfig.projectId,
           debug: loopAdSdkConfig.debug,
-          context: {
-            channel: DEFAULT_CHANNEL,
-            device: detectDevice(),
-          },
+          context: createLoopAdSharedContext(),
         });
 
-        client.setIdentity(identity, {
-          channel: DEFAULT_CHANNEL,
-          device: detectDevice(),
-        });
+        client.setIdentity(identity, createLoopAdSharedContext());
 
         return client;
       })
@@ -202,6 +201,7 @@ export function renderLoopAdPlacement(options: {
         channel: DEFAULT_CHANNEL,
         page: options.page,
         device: detectDevice(),
+        ...createLoopAdAdContext(),
       },
       onImpression: options.onImpression ?? null,
       onClick: options.onClick ?? null,
@@ -211,10 +211,23 @@ export function renderLoopAdPlacement(options: {
 
 export function trackLoopAdEvent(eventName: string, fields?: LoopAdTrackFields): void {
   void initLoopAdEventSdk()
-    .then((client) => client.track(eventName, fields))
+    .then((client) => client.track(eventName, withDemoUserTrackFields(fields)))
     .catch((error: unknown) => {
       if (loopAdSdkConfig.debug) {
         console.warn("Loop Ad Event SDK tracking skipped.", error);
+      }
+    });
+}
+
+export function setLoopAdDemoUserIdentity(): void {
+  void initLoopAdEventSdk()
+    .then((client) => {
+      client.setIdentity(getDemoIdentity(), createLoopAdSharedContext());
+      resetLoopAdAdvertisementSdk();
+    })
+    .catch((error: unknown) => {
+      if (loopAdSdkConfig.debug) {
+        console.warn("Loop Ad Event SDK identity update skipped.", error);
       }
     });
 }
@@ -246,6 +259,15 @@ function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient> {
   }
 
   return advertisementClientPromise;
+}
+
+function resetLoopAdAdvertisementSdk(): void {
+  const clientPromise = advertisementClientPromise;
+  advertisementClientPromise = null;
+
+  void clientPromise
+    ?.then((client) => client.destroy())
+    .catch(() => undefined);
 }
 
 function loadScript<T>(src: string, getGlobal: () => T | undefined): Promise<void> {
@@ -295,13 +317,28 @@ function withLatestSdkQuery(src: string): string {
 }
 
 function getDemoIdentity(): LoopAdIdentity {
+  const profile = getSelectedDemoUserProfile();
+
   if (typeof window === "undefined") {
     return {
-      userId: "demo-user-browser-only",
+      userId: profile?.userId ?? "demo-user-browser-only",
       sessionId: "demo-session-browser-only",
     };
   }
 
+  const fallbackIdentity = getStoredDemoIdentity();
+
+  if (profile) {
+    return {
+      userId: profile.userId,
+      sessionId: fallbackIdentity.sessionId,
+    };
+  }
+
+  return fallbackIdentity;
+}
+
+function getStoredDemoIdentity(): LoopAdIdentity {
   try {
     const stored = window.localStorage.getItem(DEMO_IDENTITY_STORAGE_KEY);
     const parsed = stored ? (JSON.parse(stored) as unknown) : null;
@@ -320,6 +357,61 @@ function getDemoIdentity(): LoopAdIdentity {
 
   window.localStorage.setItem(DEMO_IDENTITY_STORAGE_KEY, JSON.stringify(identity));
   return identity;
+}
+
+function createLoopAdSharedContext(): LoopAdTrackFields {
+  const profile = getSelectedDemoUserProfile();
+
+  return {
+    channel: DEFAULT_CHANNEL,
+    device: detectDevice(),
+    ageGroup: profile?.ageGroup,
+    gender: profile?.gender,
+  };
+}
+
+function createLoopAdAdContext(): Record<string, string | null> {
+  const profile = getSelectedDemoUserProfile();
+
+  if (!profile) {
+    return {};
+  }
+
+  return {
+    ageGroup: profile.ageGroup,
+    gender: profile.gender,
+    region: profile.region,
+    userType: profile.type,
+    userSegment: profile.segment,
+    preferredCategory: profile.preferredCategory,
+  };
+}
+
+function withDemoUserTrackFields(fields: LoopAdTrackFields = {}): LoopAdTrackFields {
+  const profile = getSelectedDemoUserProfile();
+
+  if (!profile) {
+    return fields;
+  }
+
+  return {
+    ...fields,
+    ageGroup: fields.ageGroup ?? profile.ageGroup,
+    gender: fields.gender ?? profile.gender,
+    properties: {
+      ...createDemoUserProperties(profile),
+      ...(fields.properties ?? {}),
+    },
+  };
+}
+
+function createDemoUserProperties(profile: DemoUserProfile): LoopAdEventProperties {
+  return {
+    region: profile.region,
+    user_type: profile.type,
+    user_segment: profile.segment,
+    preferred_category: profile.preferredCategory,
+  };
 }
 
 function isIdentity(value: unknown): value is LoopAdIdentity {
