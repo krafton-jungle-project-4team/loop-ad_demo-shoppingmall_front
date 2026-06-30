@@ -1,6 +1,7 @@
 import { Grid3X3, Home, ReceiptText, ShoppingCart } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
+import { SAMPLE_ORDER_PATH } from "@/config/demo-routes";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/state/cart-context";
 
@@ -8,7 +9,7 @@ const mobileItems = [
   { to: "/", label: "홈", icon: Home },
   { to: "/products", label: "상품", icon: Grid3X3 },
   { to: "/cart", label: "장바구니", icon: ShoppingCart },
-  { to: "/orders/demo-order", label: "주문", icon: ReceiptText },
+  { to: SAMPLE_ORDER_PATH, label: "주문", icon: ReceiptText },
 ];
 
 export function MobileNavigation() {
@@ -33,7 +34,7 @@ export function MobileNavigation() {
                 isActive && "bg-accent text-accent-foreground",
               )
             }
-            >
+          >
             <span className="relative">
               <Icon aria-hidden="true" className="size-5" />
               {to === "/cart" && itemCount > 0 ? (
