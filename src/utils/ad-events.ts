@@ -4,6 +4,7 @@ import {
   type AdvertisementFilledDecision,
   type LoopAdTrackFields,
 } from "@/lib/loop-ad-sdk";
+import { rememberLoopAdAttribution } from "@/utils/ad-attribution";
 
 export type AdEventName = "ad_impression" | "ad_click";
 export type AdViewport = "mobile" | "tablet" | "desktop";
@@ -82,7 +83,7 @@ export function trackAdEventWithSdk(
   payload: AdEventPayload,
   fields: LoopAdTrackFields = {},
 ): void {
-  trackLoopAdEvent(payload.eventName, {
+  const sdkFields: LoopAdTrackFields = {
     ...fields,
     channel: fields.channel ?? "demo-shoppingmall",
     creativeId: fields.creativeId ?? payload.creativeId,
@@ -94,5 +95,20 @@ export function trackAdEventWithSdk(
       source_event_time: payload.timestamp,
       ...(fields.properties ?? {}),
     },
-  });
+  };
+
+  if (payload.eventName === "ad_click") {
+    rememberLoopAdAttribution(sdkFields, {
+      source: stringProperty(sdkFields.properties?.source),
+      placementKey: stringProperty(sdkFields.properties?.placement_key),
+      page: payload.page,
+      timestamp: payload.timestamp,
+    });
+  }
+
+  trackLoopAdEvent(payload.eventName, sdkFields);
+}
+
+function stringProperty(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
 }
