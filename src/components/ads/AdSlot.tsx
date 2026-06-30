@@ -163,9 +163,7 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
       aria-busy={renderState === "loading"}
       className={cn(
         "loopad-ad-slot relative overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors",
-        isWingSlot
-          ? "loopad-ad-slot-wing min-h-[28rem]"
-          : "loopad-ad-slot-main min-h-[15rem] sm:min-h-[18rem]",
+        isWingSlot ? "min-h-[28rem]" : "min-h-[15rem] sm:min-h-[18rem]",
         className,
       )}
     >
