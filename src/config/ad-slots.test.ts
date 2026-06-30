@@ -27,4 +27,19 @@ describe("ad slot configuration", () => {
 
     expect(new Set(creativeIds).size).toBe(creativeIds.length);
   });
+
+  it("uses stable fallback tracking ids for each ad slot", () => {
+    expect(adSlots.C1_MAIN_TOP.fallbackTracking).toEqual({
+      experimentId: "fallback-main-top",
+      variantId: "fallback-main-top-a",
+      mappingId: "fallback-main-top-mapping",
+      actionId: "fallback-main-top-action",
+    });
+    expect(adSlots.W1_WING.fallbackTracking).toEqual({
+      experimentId: "fallback-wing",
+      variantId: "fallback-wing-a",
+      mappingId: "fallback-wing-mapping",
+      actionId: "fallback-wing-action",
+    });
+  });
 });

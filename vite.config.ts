@@ -10,4 +10,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "https://dashboard.api.dev.loop-ad.org",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
 });
