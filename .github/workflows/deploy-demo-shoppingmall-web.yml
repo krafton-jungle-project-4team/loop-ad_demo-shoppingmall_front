@@ -44,16 +44,16 @@ jobs:
     uses: krafton-jungle-project-4team/loop-ad_infra/.github/workflows/frontend-deploy.yml@main
     with:
       environment: dev
-      aws_region: ${{ vars.LOOPAD_DEV_AWS_REGION }}
-      role_arn: ${{ vars.LOOPAD_DEV_DEPLOY_ROLE_ARN }}
+      aws_region: ap-northeast-2
+      role_arn: ${{ vars.LOOP_AD_DEV_FRONTEND_DEPLOY_ROLE_ARN }}
       node_version: "25"
       working_directory: .
       install_command: npm ci
       build_command: npm run build
       build_output_dir: dist
-      s3_bucket: ${{ vars.LOOPAD_DEMO_SHOPPINGMALL_WEB_S3_BUCKET }}
+      s3_bucket: loop-ad-dev-demo-shoppingmall-web
       s3_prefix: .
-      cloudfront_distribution_id: ${{ vars.LOOPAD_DEMO_SHOPPINGMALL_WEB_CLOUDFRONT_DISTRIBUTION_ID }}
+      cloudfront_distribution_id: ${{ vars.LOOP_AD_DEV_DEMO_SHOPPINGMALL_WEB_CLOUDFRONT_DISTRIBUTION_ID }}
       cloudfront_invalidation_paths: "/*"
       asset_cache_control: public, max-age=31536000, immutable
       html_cache_control: no-cache
