@@ -131,7 +131,8 @@ const LOOP_AD_EVENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_event_sdk/loop-ad-event-sdk.iife.js";
 const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
-const DEMO_IDENTITY_STORAGE_KEY = "loop-ad-demo-identity";
+const DEMO_USER_ID_STORAGE_KEY = "loop-ad-demo-user-id";
+const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const DEFAULT_PROJECT_ID = "demo-shoppingmall";
 const DEFAULT_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
 const DEV_AD_API_BASE_URL = "/api";
@@ -316,7 +317,7 @@ function withLatestSdkQuery(src: string): string {
   return url.toString();
 }
 
-function getDemoIdentity(): LoopAdIdentity {
+export function getDemoIdentity(): LoopAdIdentity {
   const profile = getSelectedDemoUserProfile();
 
   if (typeof window === "undefined") {
@@ -339,24 +340,58 @@ function getDemoIdentity(): LoopAdIdentity {
 }
 
 function getStoredDemoIdentity(): LoopAdIdentity {
-  try {
-    const stored = window.localStorage.getItem(DEMO_IDENTITY_STORAGE_KEY);
-    const parsed = stored ? (JSON.parse(stored) as unknown) : null;
+  return {
+    userId: getStoredDemoUserId(),
+    sessionId: getStoredDemoSessionId(),
+  };
+}
 
-    if (isIdentity(parsed)) {
-      return parsed;
+function getStoredDemoUserId(): string {
+  try {
+    const userId = window.localStorage.getItem(DEMO_USER_ID_STORAGE_KEY);
+
+    if (isNonEmptyString(userId)) {
+      return userId;
     }
   } catch {
-    window.localStorage.removeItem(DEMO_IDENTITY_STORAGE_KEY);
+    // Create an in-memory identity when localStorage is unavailable.
   }
 
-  const identity = {
-    userId: createId("demo-user"),
-    sessionId: createId("demo-session"),
-  };
+  const userId = createId("demo-user");
+  storeDemoUserId(userId);
+  return userId;
+}
 
-  window.localStorage.setItem(DEMO_IDENTITY_STORAGE_KEY, JSON.stringify(identity));
-  return identity;
+function storeDemoUserId(userId: string): void {
+  try {
+    window.localStorage.setItem(DEMO_USER_ID_STORAGE_KEY, userId);
+  } catch {
+    // Demo identity should still be usable when storage writes are unavailable.
+  }
+}
+
+function getStoredDemoSessionId(): string {
+  try {
+    const sessionId = window.sessionStorage.getItem(DEMO_SESSION_STORAGE_KEY);
+
+    if (isNonEmptyString(sessionId)) {
+      return sessionId;
+    }
+  } catch {
+    // Create an in-memory identity when sessionStorage is unavailable.
+  }
+
+  const sessionId = createId("demo-session");
+  storeDemoSessionId(sessionId);
+  return sessionId;
+}
+
+function storeDemoSessionId(sessionId: string): void {
+  try {
+    window.sessionStorage.setItem(DEMO_SESSION_STORAGE_KEY, sessionId);
+  } catch {
+    // Demo identity should still be usable when storage writes are unavailable.
+  }
 }
 
 function createLoopAdSharedContext(): LoopAdTrackFields {
@@ -414,13 +449,8 @@ function createDemoUserProperties(profile: DemoUserProfile): LoopAdEventProperti
   };
 }
 
-function isIdentity(value: unknown): value is LoopAdIdentity {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    typeof (value as LoopAdIdentity).userId === "string" &&
-    typeof (value as LoopAdIdentity).sessionId === "string"
-  );
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function createId(prefix: string): string {
