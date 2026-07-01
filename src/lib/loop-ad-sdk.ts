@@ -420,6 +420,7 @@ function createLoopAdSharedContext(): LoopAdTrackFields {
     device: detectDevice(),
     ageGroup: profile?.ageGroup,
     gender: profile?.gender,
+    properties: profile ? createDemoUserProperties(profile) : undefined,
   };
 }
 
@@ -449,11 +450,11 @@ function withDemoUserTrackFields(fields: LoopAdTrackFields = {}): LoopAdTrackFie
 
   return {
     ...fields,
-    ageGroup: fields.ageGroup ?? profile.ageGroup,
-    gender: fields.gender ?? profile.gender,
+    ageGroup: profile.ageGroup,
+    gender: profile.gender,
     properties: {
-      ...createDemoUserProperties(profile),
       ...(fields.properties ?? {}),
+      ...createDemoUserProperties(profile),
     },
   };
 }
@@ -461,6 +462,8 @@ function withDemoUserTrackFields(fields: LoopAdTrackFields = {}): LoopAdTrackFie
 function createDemoUserProperties(profile: DemoUserProfile): LoopAdEventProperties {
   return {
     region: profile.region,
+    age_group: profile.ageGroup,
+    gender: profile.gender,
     user_type: profile.type,
     user_segment: profile.segment,
     preferred_category: profile.preferredCategory,

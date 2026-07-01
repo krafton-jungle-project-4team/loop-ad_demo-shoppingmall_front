@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getDemoIdentity } from "@/lib/loop-ad-sdk";
+import { getDemoIdentity, trackLoopAdEvent } from "@/lib/loop-ad-sdk";
 
 const SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const PROFILE_STORAGE_KEY = "loop-ad-demo-user-profile.v1";
@@ -129,5 +129,83 @@ describe("getDemoIdentity", () => {
       userId: "demo-user-busan-male-30s",
       sessionId: firstProfileIdentity?.sessionId,
     });
+  });
+
+  it("sends selected demo demographics in properties for every tracked event", async () => {
+    const { localStorage } = stubBrowserStorage();
+    localStorage.setItem(PROFILE_STORAGE_KEY, "busan-male-30s");
+    vi.stubGlobal("document", {});
+
+    const track = vi.fn();
+    const setIdentity = vi.fn();
+    const init = vi.fn(() => ({
+      track,
+      setIdentity,
+      clearIdentity: vi.fn(),
+      destroy: vi.fn(),
+    }));
+
+    Object.assign(window, {
+      LoopAdEventSDK: {
+        init,
+        version: "test",
+      },
+    });
+
+    trackLoopAdEvent("product_view", {
+      ageGroup: "10s",
+      gender: "unknown",
+      properties: {
+        page: "/products/fresh-salad-kit",
+        region: "stale-region",
+        age_group: "stale-age",
+        gender: "stale-gender",
+      },
+    });
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
+    const expectedDemographicProperties = {
+      region: "부산",
+      age_group: "30s",
+      gender: "male",
+      user_type: "busan-male-30s",
+      user_segment: "high_intent",
+      preferred_category: "digital",
+    };
+
+    expect(init).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({
+          ageGroup: "30s",
+          gender: "male",
+          properties: expect.objectContaining(expectedDemographicProperties),
+        }),
+      }),
+    );
+    expect(setIdentity).toHaveBeenCalledWith(
+      {
+        userId: "demo-user-busan-male-30s",
+        sessionId: "demo-session-uuid-1",
+      },
+      expect.objectContaining({
+        ageGroup: "30s",
+        gender: "male",
+        properties: expect.objectContaining(expectedDemographicProperties),
+      }),
+    );
+    expect(track).toHaveBeenCalledWith(
+      "product_view",
+      expect.objectContaining({
+        ageGroup: "30s",
+        gender: "male",
+        properties: expect.objectContaining({
+          page: "/products/fresh-salad-kit",
+          ...expectedDemographicProperties,
+        }),
+      }),
+    );
   });
 });
