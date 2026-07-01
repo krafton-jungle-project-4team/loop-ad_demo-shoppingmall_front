@@ -2,6 +2,7 @@ import { CheckCircle2, ClipboardList } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 
+import { ProductImage } from "@/components/commerce/ProductImage";
 import { useCartStore } from "@/state/cart-context";
 import { useOrderStore } from "@/state/order-context";
 import { formatMoney } from "@/utils/money";
@@ -101,15 +102,22 @@ export function OrderCompletePage() {
             {lineItems.map(({ item, product, optionLabel, lineTotal }) => (
               <article
                 key={`${item.productId}:${item.option ?? "default"}`}
-                className="rounded-md border border-border bg-background p-4"
+                className="grid gap-3 rounded-md border border-border bg-background p-4 sm:grid-cols-[4.5rem_minmax(0,1fr)]"
               >
-                <p className="font-bold text-foreground">{product.name}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  옵션: {optionLabel} · 수량 {item.quantity}개
-                </p>
-                <p className="mt-2 text-sm font-semibold text-foreground">
-                  {formatMoney(lineTotal)}
-                </p>
+                <ProductImage
+                  product={product}
+                  className="aspect-square"
+                  decorative
+                />
+                <div className="min-w-0">
+                  <p className="font-bold text-foreground">{product.name}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    옵션: {optionLabel} · 수량 {item.quantity}개
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-foreground">
+                    {formatMoney(lineTotal)}
+                  </p>
+                </div>
               </article>
             ))}
           </div>

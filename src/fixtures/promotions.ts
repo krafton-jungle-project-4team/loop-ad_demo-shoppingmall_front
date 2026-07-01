@@ -1,3 +1,4 @@
+import summerSaleBannerImage from "@/assets/images/banners/summer-sale.png";
 import type { Promotion } from "@/types/commerce";
 
 export const promotions: Promotion[] = [
@@ -5,6 +6,7 @@ export const promotions: Promotion[] = [
     id: "summer-sale",
     title: "상쾌한 데일리 특가",
     description: "가볍게 먹고 들기 좋은 계절 상품을 모았습니다.",
+    heroImage: summerSaleBannerImage,
     productIds: [
       "fresh-salad-kit",
       "fresh-breakfast-box",

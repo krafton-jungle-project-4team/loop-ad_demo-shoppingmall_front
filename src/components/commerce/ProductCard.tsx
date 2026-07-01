@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-import { getCategoryById } from "@/fixtures/product-helpers";
+import { ProductImage } from "@/components/commerce/ProductImage";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/commerce";
 import { formatMoney, getDiscountRate } from "@/utils/money";
@@ -11,7 +11,6 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, compact = false }: ProductCardProps) {
-  const categoryName = getCategoryById(product.categoryId)?.name;
   const discountRate = getDiscountRate(product.originalPrice, product.price);
 
   return (
@@ -19,11 +18,12 @@ export function ProductCard({ product, compact = false }: ProductCardProps) {
       to={`/products/${product.id}`}
       className="group flex min-w-0 flex-col overflow-hidden rounded-md border border-border bg-card transition-colors hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
-      <div className="grid aspect-[4/3] place-items-center bg-muted p-4" aria-hidden="true">
-        <div className="flex size-full items-center justify-center rounded-md border border-border bg-background text-xs font-semibold text-muted-foreground">
-          {categoryName ?? "상품"}
-        </div>
-      </div>
+      <ProductImage
+        product={product}
+        className="aspect-[4/3] rounded-none"
+        imageClassName="transition-transform duration-300 group-hover:scale-[1.03]"
+        decorative
+      />
       <div className={cn("flex flex-1 flex-col gap-3 p-4", compact && "p-3")}>
         <div className="flex flex-wrap gap-1.5">
           {discountRate > 0 ? (

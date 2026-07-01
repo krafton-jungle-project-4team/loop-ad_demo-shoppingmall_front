@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { AppDialog } from "@/components/common/AppDialog";
 import { ProductCard } from "@/components/commerce/ProductCard";
+import { ProductImage } from "@/components/commerce/ProductImage";
 import {
   getCategoryById,
   getProductById,
@@ -155,14 +156,12 @@ export function ProductDetailPage() {
   return (
     <div className="flex flex-col gap-8">
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
-        <div
-          className="grid min-h-[22rem] place-items-center rounded-md border border-border bg-muted p-6"
-          aria-hidden="true"
-        >
-          <div className="flex size-full min-h-72 items-center justify-center rounded-md border border-border bg-background text-sm font-semibold text-muted-foreground">
-            {category?.name ?? "상품 이미지"}
-          </div>
-        </div>
+        <ProductImage
+          product={product}
+          className="min-h-[22rem] border border-border"
+          imageClassName="max-h-[34rem] object-contain"
+          loading="eager"
+        />
 
         <div className="rounded-md border border-border bg-card p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-5">
