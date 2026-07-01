@@ -182,6 +182,8 @@ export function initLoopAdEventSdk(): Promise<LoopAdEventClient | null> {
         const client = sdk.init({
           projectId: loopAdSdkConfig.projectId,
           debug: loopAdSdkConfig.debug,
+          autoTrackPageViews: false,
+          collectDomEvents: false,
           context: createLoopAdSharedContext(),
         });
 
@@ -248,6 +250,10 @@ export function trackLoopAdEvent(eventName: string, fields?: LoopAdTrackFields):
     });
 }
 
+export function trackLoopAdPageView(previousUrl?: string | null): void {
+  trackLoopAdEvent("page_view", createPageViewFields(previousUrl));
+}
+
 export function setLoopAdDemoUserIdentity(): void {
   if (!getDemoIdentity()) {
     return;
@@ -263,6 +269,7 @@ export function setLoopAdDemoUserIdentity(): void {
 
       client.setIdentity(identity, createLoopAdSharedContext());
       resetLoopAdAdvertisementSdk();
+      trackLoopAdPageView();
     })
     .catch((error: unknown) => {
       if (loopAdSdkConfig.debug) {
@@ -366,6 +373,41 @@ function withLatestSdkQuery(src: string): string {
   const url = new URL(src, window.location.href);
   url.searchParams.set("loopad_sdk_t", Date.now().toString());
   return url.toString();
+}
+
+function createPageViewFields(previousUrl?: string | null): LoopAdTrackFields {
+  const page = getCurrentPageProperties(previousUrl);
+
+  return {
+    channel: DEFAULT_CHANNEL,
+    device: detectDevice(),
+    properties: {
+      page,
+      route_group: page.path,
+    },
+  };
+}
+
+function getCurrentPageProperties(previousUrl?: string | null): LoopAdEventProperties {
+  if (typeof window === "undefined") {
+    return {
+      url: "",
+      path: "",
+      title: "",
+      referrer: "",
+      previous_url: previousUrl ?? "",
+    };
+  }
+
+  const path = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+  return {
+    url: window.location.href,
+    path,
+    title: typeof document === "undefined" ? "" : document.title,
+    referrer: typeof document === "undefined" ? "" : document.referrer,
+    previous_url: previousUrl ?? "",
+  };
 }
 
 export function getDemoIdentity(): LoopAdIdentity | null {

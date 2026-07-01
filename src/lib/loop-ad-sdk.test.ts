@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getDemoIdentity, trackLoopAdEvent } from "@/lib/loop-ad-sdk";
+import {
+  getDemoIdentity,
+  trackLoopAdEvent,
+  trackLoopAdPageView,
+} from "@/lib/loop-ad-sdk";
 
 const SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const PROFILE_STORAGE_KEY = "loop-ad-demo-user-profile.v1";
@@ -41,6 +45,12 @@ function stubBrowserStorage(
     dispatchEvent: vi.fn(),
     innerWidth: 1440,
     localStorage,
+    location: {
+      hash: "",
+      href: "https://demo-shoppingmall.dev.loop-ad.org/login",
+      pathname: "/login",
+      search: "",
+    },
     sessionStorage,
   });
 
@@ -134,7 +144,10 @@ describe("getDemoIdentity", () => {
   it("sends selected demo demographics in properties for every tracked event", async () => {
     const { localStorage } = stubBrowserStorage();
     localStorage.setItem(PROFILE_STORAGE_KEY, "busan-male-30s");
-    vi.stubGlobal("document", {});
+    vi.stubGlobal("document", {
+      referrer: "https://example.test/start",
+      title: "Loop Shop Demo",
+    });
 
     const track = vi.fn();
     const setIdentity = vi.fn();
@@ -162,6 +175,7 @@ describe("getDemoIdentity", () => {
         gender: "stale-gender",
       },
     });
+    trackLoopAdPageView("https://demo-shoppingmall.dev.loop-ad.org/");
 
     await new Promise<void>((resolve) => {
       setTimeout(resolve, 0);
@@ -178,10 +192,30 @@ describe("getDemoIdentity", () => {
 
     expect(init).toHaveBeenCalledWith(
       expect.objectContaining({
+        autoTrackPageViews: false,
+        collectDomEvents: false,
         context: expect.objectContaining({
           ageGroup: "30s",
           gender: "male",
           properties: expect.objectContaining(expectedDemographicProperties),
+        }),
+      }),
+    );
+    expect(track).toHaveBeenCalledWith(
+      "page_view",
+      expect.objectContaining({
+        ageGroup: "30s",
+        gender: "male",
+        properties: expect.objectContaining({
+          ...expectedDemographicProperties,
+          page: expect.objectContaining({
+            path: "/login",
+            previous_url: "https://demo-shoppingmall.dev.loop-ad.org/",
+            referrer: "https://example.test/start",
+            title: "Loop Shop Demo",
+            url: "https://demo-shoppingmall.dev.loop-ad.org/login",
+          }),
+          route_group: "/login",
         }),
       }),
     );
