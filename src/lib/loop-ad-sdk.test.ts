@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getDemoIdentity } from "@/lib/loop-ad-sdk";
 
-const USER_ID_STORAGE_KEY = "loop-ad-demo-user-id";
 const SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const PROFILE_STORAGE_KEY = "loop-ad-demo-user-profile.v1";
 
@@ -63,20 +62,33 @@ describe("getDemoIdentity", () => {
     vi.unstubAllGlobals();
   });
 
-  it("stores browser userId in localStorage and sessionId in sessionStorage", () => {
+  it("does not create a browser identity before demo login", () => {
     const { localStorage, sessionStorage } = stubBrowserStorage();
 
     const firstIdentity = getDemoIdentity();
     const secondIdentity = getDemoIdentity();
 
+    expect(firstIdentity).toBeNull();
+    expect(secondIdentity).toBeNull();
+    expect(localStorage.getItem("loop-ad-demo-user-id")).toBeNull();
+    expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it("uses the selected demo profile userId and stores sessionId", () => {
+    const { localStorage, sessionStorage } = stubBrowserStorage();
+    localStorage.setItem(PROFILE_STORAGE_KEY, "seoul-female-20s");
+
+    const firstIdentity = getDemoIdentity();
+    const secondIdentity = getDemoIdentity();
+
     expect(firstIdentity).toEqual({
-      userId: "demo-user-uuid-1",
-      sessionId: "demo-session-uuid-2",
+      userId: "demo-user-seoul-female-20s",
+      sessionId: "demo-session-uuid-1",
     });
     expect(secondIdentity).toEqual(firstIdentity);
-    expect(localStorage.getItem(USER_ID_STORAGE_KEY)).toBe(firstIdentity.userId);
+    expect(localStorage.getItem("loop-ad-demo-user-id")).toBeNull();
     expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBe(
-      firstIdentity.sessionId,
+      firstIdentity?.sessionId,
     );
   });
 
@@ -84,6 +96,7 @@ describe("getDemoIdentity", () => {
     const localStorage = new MemoryStorage();
     const firstSessionStorage = new MemoryStorage();
     stubBrowserStorage(localStorage, firstSessionStorage);
+    localStorage.setItem(PROFILE_STORAGE_KEY, "seoul-female-20s");
 
     const firstIdentity = getDemoIdentity();
 
@@ -92,25 +105,29 @@ describe("getDemoIdentity", () => {
 
     const secondIdentity = getDemoIdentity();
 
-    expect(secondIdentity.userId).toBe(firstIdentity.userId);
-    expect(secondIdentity.sessionId).toBe("demo-session-uuid-3");
-    expect(secondIdentity.sessionId).not.toBe(firstIdentity.sessionId);
+    expect(firstIdentity).not.toBeNull();
+    expect(secondIdentity).not.toBeNull();
+    expect(secondIdentity?.userId).toBe(firstIdentity?.userId);
+    expect(secondIdentity?.sessionId).toBe("demo-session-uuid-2");
+    expect(secondIdentity?.sessionId).not.toBe(firstIdentity?.sessionId);
     expect(secondSessionStorage.getItem(SESSION_STORAGE_KEY)).toBe(
-      secondIdentity.sessionId,
+      secondIdentity?.sessionId,
     );
   });
 
   it("uses the selected demo profile userId without changing the sessionId", () => {
     const { localStorage } = stubBrowserStorage();
-
-    const browserIdentity = getDemoIdentity();
     localStorage.setItem(PROFILE_STORAGE_KEY, "seoul-female-20s");
 
-    const profileIdentity = getDemoIdentity();
+    const firstProfileIdentity = getDemoIdentity();
+    localStorage.setItem(PROFILE_STORAGE_KEY, "busan-male-30s");
 
-    expect(profileIdentity).toEqual({
-      userId: "demo-user-seoul-female-20s",
-      sessionId: browserIdentity.sessionId,
+    const secondProfileIdentity = getDemoIdentity();
+
+    expect(firstProfileIdentity).not.toBeNull();
+    expect(secondProfileIdentity).toEqual({
+      userId: "demo-user-busan-male-30s",
+      sessionId: firstProfileIdentity?.sessionId,
     });
   });
 });

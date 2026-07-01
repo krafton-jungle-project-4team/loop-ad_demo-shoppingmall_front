@@ -131,7 +131,6 @@ const LOOP_AD_EVENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_event_sdk/loop-ad-event-sdk.iife.js";
 const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
-const DEMO_USER_ID_STORAGE_KEY = "loop-ad-demo-user-id";
 const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const DEFAULT_PROJECT_ID = "demo-shoppingmall";
 const DEFAULT_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
@@ -139,8 +138,8 @@ const DEV_AD_API_BASE_URL = "/api";
 const DEFAULT_CHANNEL = "demo-shoppingmall";
 
 const scriptLoaders = new Map<string, Promise<void>>();
-let eventClientPromise: Promise<LoopAdEventClient> | null = null;
-let advertisementClientPromise: Promise<AdvertisementClient> | null = null;
+let eventClientPromise: Promise<LoopAdEventClient | null> | null = null;
+let advertisementClientPromise: Promise<AdvertisementClient | null> | null = null;
 
 export const loopAdSdkConfig = {
   eventSdkUrl: LOOP_AD_EVENT_SDK_URL,
@@ -154,7 +153,13 @@ export const loopAdSdkConfig = {
     import.meta.env.DEV,
 };
 
-export function initLoopAdEventSdk(): Promise<LoopAdEventClient> {
+export function initLoopAdEventSdk(): Promise<LoopAdEventClient | null> {
+  const identity = getDemoIdentity();
+
+  if (!identity) {
+    return Promise.resolve(null);
+  }
+
   if (!eventClientPromise) {
     eventClientPromise = loadScript(
       loopAdSdkConfig.eventSdkUrl,
@@ -167,14 +172,20 @@ export function initLoopAdEventSdk(): Promise<LoopAdEventClient> {
           throw new Error("LoopAdEventSDK global was not registered.");
         }
 
-        const identity = getDemoIdentity();
+        const currentIdentity = getDemoIdentity();
+
+        if (!currentIdentity) {
+          eventClientPromise = null;
+          return null;
+        }
+
         const client = sdk.init({
           projectId: loopAdSdkConfig.projectId,
           debug: loopAdSdkConfig.debug,
           context: createLoopAdSharedContext(),
         });
 
-        client.setIdentity(identity, createLoopAdSharedContext());
+        client.setIdentity(currentIdentity, createLoopAdSharedContext());
 
         return client;
       })
@@ -194,8 +205,17 @@ export function renderLoopAdPlacement(options: {
   onImpression?: ((decision: AdvertisementFilledDecision) => void) | null;
   onClick?: ((decision: AdvertisementFilledDecision) => void) | null;
 }): Promise<AdvertisementDecision> {
-  return initLoopAdAdvertisementSdk().then((client) =>
-    client.render({
+  return initLoopAdAdvertisementSdk().then((client) => {
+    if (!client) {
+      return {
+        placementKey: options.placementKey,
+        status: "empty",
+        ad: null,
+        tracking: null,
+      };
+    }
+
+    return client.render({
       placementKey: options.placementKey,
       targetId: options.targetId,
       context: {
@@ -206,13 +226,21 @@ export function renderLoopAdPlacement(options: {
       },
       onImpression: options.onImpression ?? null,
       onClick: options.onClick ?? null,
-    }),
-  );
+    });
+  });
 }
 
 export function trackLoopAdEvent(eventName: string, fields?: LoopAdTrackFields): void {
+  if (!getDemoIdentity()) {
+    if (loopAdSdkConfig.debug) {
+      console.info("Loop Ad Event SDK tracking skipped before demo login.");
+    }
+
+    return;
+  }
+
   void initLoopAdEventSdk()
-    .then((client) => client.track(eventName, withDemoUserTrackFields(fields)))
+    .then((client) => client?.track(eventName, withDemoUserTrackFields(fields)))
     .catch((error: unknown) => {
       if (loopAdSdkConfig.debug) {
         console.warn("Loop Ad Event SDK tracking skipped.", error);
@@ -221,9 +249,19 @@ export function trackLoopAdEvent(eventName: string, fields?: LoopAdTrackFields):
 }
 
 export function setLoopAdDemoUserIdentity(): void {
+  if (!getDemoIdentity()) {
+    return;
+  }
+
   void initLoopAdEventSdk()
     .then((client) => {
-      client.setIdentity(getDemoIdentity(), createLoopAdSharedContext());
+      const identity = getDemoIdentity();
+
+      if (!client || !identity) {
+        return;
+      }
+
+      client.setIdentity(identity, createLoopAdSharedContext());
       resetLoopAdAdvertisementSdk();
     })
     .catch((error: unknown) => {
@@ -233,7 +271,13 @@ export function setLoopAdDemoUserIdentity(): void {
     });
 }
 
-function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient> {
+function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient | null> {
+  const identity = getDemoIdentity();
+
+  if (!identity) {
+    return Promise.resolve(null);
+  }
+
   if (!advertisementClientPromise) {
     advertisementClientPromise = loadScript(
       loopAdSdkConfig.advertisementSdkUrl,
@@ -246,10 +290,17 @@ function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient> {
           throw new Error("LoopAdAdvertisementSDK global was not registered.");
         }
 
+        const currentIdentity = getDemoIdentity();
+
+        if (!currentIdentity) {
+          advertisementClientPromise = null;
+          return null;
+        }
+
         return sdk.init({
           apiBaseUrl: loopAdSdkConfig.advertisementApiBaseUrl,
           projectId: loopAdSdkConfig.projectId,
-          userId: getDemoIdentity().userId,
+          userId: currentIdentity.userId,
           debug: loopAdSdkConfig.debug,
         });
       })
@@ -267,7 +318,7 @@ function resetLoopAdAdvertisementSdk(): void {
   advertisementClientPromise = null;
 
   void clientPromise
-    ?.then((client) => client.destroy())
+    ?.then((client) => client?.destroy())
     .catch(() => undefined);
 }
 
@@ -317,57 +368,24 @@ function withLatestSdkQuery(src: string): string {
   return url.toString();
 }
 
-export function getDemoIdentity(): LoopAdIdentity {
+export function getDemoIdentity(): LoopAdIdentity | null {
   const profile = getSelectedDemoUserProfile();
+
+  if (!profile) {
+    return null;
+  }
 
   if (typeof window === "undefined") {
     return {
-      userId: profile?.userId ?? "demo-user-browser-only",
+      userId: profile.userId,
       sessionId: "demo-session-browser-only",
     };
   }
 
-  const fallbackIdentity = getStoredDemoIdentity();
-
-  if (profile) {
-    return {
-      userId: profile.userId,
-      sessionId: fallbackIdentity.sessionId,
-    };
-  }
-
-  return fallbackIdentity;
-}
-
-function getStoredDemoIdentity(): LoopAdIdentity {
   return {
-    userId: getStoredDemoUserId(),
+    userId: profile.userId,
     sessionId: getStoredDemoSessionId(),
   };
-}
-
-function getStoredDemoUserId(): string {
-  try {
-    const userId = window.localStorage.getItem(DEMO_USER_ID_STORAGE_KEY);
-
-    if (isNonEmptyString(userId)) {
-      return userId;
-    }
-  } catch {
-    // Create an in-memory identity when localStorage is unavailable.
-  }
-
-  const userId = createId("demo-user");
-  storeDemoUserId(userId);
-  return userId;
-}
-
-function storeDemoUserId(userId: string): void {
-  try {
-    window.localStorage.setItem(DEMO_USER_ID_STORAGE_KEY, userId);
-  } catch {
-    // Demo identity should still be usable when storage writes are unavailable.
-  }
 }
 
 function getStoredDemoSessionId(): string {
