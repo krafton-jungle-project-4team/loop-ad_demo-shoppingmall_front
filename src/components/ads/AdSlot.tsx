@@ -1,5 +1,4 @@
-import { ArrowRight } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { adSlots, type AdSlotId } from "@/config/ad-slots";
@@ -28,6 +27,7 @@ type AdRenderSnapshot = {
 };
 
 const trackedImpressionKeys = new Set<string>();
+const DEFAULT_AD_IMAGE_ASPECT_RATIO = "1200 / 628";
 
 function getCurrentViewportWidth(): number {
   if (typeof window === "undefined") {
@@ -37,12 +37,26 @@ function getCurrentViewportWidth(): number {
   return window.innerWidth;
 }
 
+function setAdImageAspectRatio(
+  slotElement: HTMLElement,
+  imageElement: HTMLImageElement,
+) {
+  if (imageElement.naturalWidth <= 0 || imageElement.naturalHeight <= 0) {
+    return;
+  }
+
+  slotElement.style.setProperty(
+    "--loopad-ad-aspect-ratio",
+    `${imageElement.naturalWidth} / ${imageElement.naturalHeight}`,
+  );
+}
+
 export function AdSlot({ slotId, className }: AdSlotProps) {
   const slot = adSlots[slotId];
   const location = useLocation();
+  const slotRef = useRef<HTMLDivElement>(null);
   const [imageFailed, setImageFailed] = useState(false);
   const page = location.pathname;
-  const isWingSlot = slotId === "W1_WING";
   const renderKey = `${page}:${slot.id}`;
   const [renderSnapshot, setRenderSnapshot] = useState<AdRenderSnapshot>({
     key: renderKey,
@@ -62,6 +76,71 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
     () => `${page}:${slot.id}:${slot.creativeId}`,
     [page, slot.creativeId, slot.id],
   );
+
+  useEffect(() => {
+    const slotElement = slotRef.current;
+
+    if (!slotElement) {
+      return undefined;
+    }
+
+    slotElement.style.setProperty(
+      "--loopad-ad-aspect-ratio",
+      DEFAULT_AD_IMAGE_ASPECT_RATIO,
+    );
+
+    let observedImage: HTMLImageElement | null = null;
+    let removeLoadListener: (() => void) | null = null;
+
+    const observeRenderedImage = () => {
+      const imageElement = slotElement.querySelector<HTMLImageElement>("img");
+
+      if (imageElement === observedImage) {
+        if (imageElement) {
+          setAdImageAspectRatio(slotElement, imageElement);
+        }
+
+        return;
+      }
+
+      removeLoadListener?.();
+      removeLoadListener = null;
+      observedImage = imageElement;
+
+      if (!imageElement) {
+        return;
+      }
+
+      const applyAspectRatio = () => {
+        setAdImageAspectRatio(slotElement, imageElement);
+      };
+
+      if (imageElement.complete) {
+        applyAspectRatio();
+        return;
+      }
+
+      imageElement.addEventListener("load", applyAspectRatio, { once: true });
+      removeLoadListener = () => {
+        imageElement.removeEventListener("load", applyAspectRatio);
+      };
+    };
+
+    observeRenderedImage();
+
+    const observer = new MutationObserver(observeRenderedImage);
+    observer.observe(slotElement, {
+      attributes: true,
+      attributeFilter: ["src", "srcset"],
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+      removeLoadListener?.();
+    };
+  }, [renderKey]);
 
   const reportDecisionEvent = useCallback(
     (
@@ -160,10 +239,10 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
 
   return (
     <div
+      ref={slotRef}
       aria-busy={renderState === "loading"}
       className={cn(
         "loopad-ad-slot relative overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors",
-        isWingSlot ? "min-h-[28rem]" : "min-h-[15rem] sm:min-h-[18rem]",
         className,
       )}
     >
@@ -180,7 +259,11 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
           to={slot.linkTo}
           onClick={handleAdClick}
           aria-label={`${slot.title} ${slot.ctaLabel}`}
-          className="group absolute inset-0 z-[1] flex transition-colors hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          data-ad-creative-id={slot.creativeId}
+          data-ad-description={slot.description}
+          data-ad-title={slot.title}
+          data-ad-cta-label={slot.ctaLabel}
+          className="absolute inset-0 z-[1] block bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           {slot.desktopImage && !imageFailed ? (
             <picture className="absolute inset-0">
@@ -191,43 +274,11 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
                 src={slot.desktopImage}
                 alt=""
                 aria-hidden="true"
-                className="size-full object-cover"
+                className="size-full object-contain"
                 onError={() => setImageFailed(true)}
               />
             </picture>
           ) : null}
-
-          <div
-            aria-hidden="true"
-            className={cn(
-              "absolute inset-0 bg-muted",
-              !imageFailed && slot.desktopImage ? "opacity-80" : "opacity-100",
-            )}
-          />
-
-          <div className="relative z-[1] flex w-full flex-col justify-between gap-6 p-5 sm:p-7">
-            <div className="flex flex-col gap-3">
-              <p className="text-sm font-semibold text-muted-foreground">{slot.id}</p>
-              <div className="flex flex-col gap-2">
-                <h2
-                  className={cn(
-                    "font-bold tracking-normal text-foreground",
-                    isWingSlot ? "text-2xl" : "text-3xl sm:text-4xl",
-                  )}
-                >
-                  {slot.title}
-                </h2>
-                <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-                  {slot.description}
-                </p>
-              </div>
-            </div>
-
-            <span className="inline-flex w-fit items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors group-hover:bg-primary/90">
-              {slot.ctaLabel}
-              <ArrowRight aria-hidden="true" className="size-4" />
-            </span>
-          </div>
         </Link>
       ) : null}
     </div>

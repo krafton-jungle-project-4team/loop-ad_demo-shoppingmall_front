@@ -81,51 +81,35 @@ input {
 }
 
 .loopad-ad-slot {
+  aspect-ratio: var(--loopad-ad-aspect-ratio, 1200 / 628);
   contain: layout paint;
 }
 
 .loopad-sdk-target,
 .loopad-sdk-target .loopad-ad-link {
-  min-height: inherit;
   width: 100%;
   height: 100%;
 }
 
 .loopad-sdk-target .loopad-ad-link {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 1rem;
+  display: block;
   overflow: hidden;
-  padding: 1.25rem;
-  color: var(--foreground);
-}
-
-.loopad-sdk-target .loopad-ad-link::after {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: color-mix(in oklch, var(--card) 78%, transparent);
-  content: "";
+  padding: 0;
+  background: var(--card);
 }
 
 .loopad-sdk-target .loopad-ad-image {
   position: absolute;
   inset: 0;
-  z-index: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain !important;
+  object-position: center;
 }
 
 .loopad-sdk-target .loopad-ad-title,
 .loopad-sdk-target .loopad-ad-body,
 .loopad-sdk-target .loopad-ad-cta {
-  position: relative;
-  z-index: 2;
-}
-
-.loopad-sdk-target .loopad-ad-cta {
-  width: fit-content;
+  display: none !important;
 }
