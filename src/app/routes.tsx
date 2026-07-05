@@ -1,16 +1,14 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { AppLayout } from "@/components/layout/AppLayout";
-import { CartPage } from "@/pages/CartPage";
+import { BookingCompletePage } from "@/pages/BookingCompletePage";
 import { CheckoutPage } from "@/pages/CheckoutPage";
 import { HomePage } from "@/pages/HomePage";
+import { HotelDetailPage } from "@/pages/HotelDetailPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
-import { OrderCompletePage } from "@/pages/OrderCompletePage";
-import { OrderDetailPage } from "@/pages/OrderDetailPage";
-import { ProductDetailPage } from "@/pages/ProductDetailPage";
-import { ProductsPage } from "@/pages/ProductsPage";
-import { PromotionPage } from "@/pages/PromotionPage";
+import { SearchResultsPage } from "@/pages/SearchResultsPage";
+import { TripsPage } from "@/pages/TripsPage";
 
 export const router = createBrowserRouter([
   {
@@ -26,32 +24,24 @@ export const router = createBrowserRouter([
         element: <LoginPage />,
       },
       {
-        path: "products",
-        element: <ProductsPage />,
+        path: "search",
+        element: <SearchResultsPage />,
       },
       {
-        path: "products/:productId",
-        element: <ProductDetailPage />,
+        path: "hotel/:hotelId",
+        element: <HotelDetailPage />,
       },
       {
-        path: "cart",
-        element: <CartPage />,
-      },
-      {
-        path: "checkout",
+        path: "checkout/:hotelId",
         element: <CheckoutPage />,
       },
       {
-        path: "order-complete",
-        element: <OrderCompletePage />,
+        path: "booking-complete",
+        element: <BookingCompletePage />,
       },
       {
-        path: "orders/:orderId",
-        element: <OrderDetailPage />,
-      },
-      {
-        path: "promotion/:promotionId",
-        element: <PromotionPage />,
+        path: "trips",
+        element: <TripsPage />,
       },
       {
         path: "*",

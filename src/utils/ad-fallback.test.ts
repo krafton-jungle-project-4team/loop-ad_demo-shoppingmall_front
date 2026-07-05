@@ -13,11 +13,11 @@ describe("ad fallback decision", () => {
       ad: {
         creativeId: "loop-c1-summer-sale",
         contentType: "image",
-        title: "상쾌한 데일리 특가",
-        body: "가볍게 먹고 들기 좋은 계절 상품을 모았습니다.",
-        ctaLabel: "기획전 보기",
+        title: "여름 숙소 세일",
+        body: "회원가와 무료 취소 가능 숙소를 한 번에 비교해보세요.",
+        ctaLabel: "특가 숙소 보기",
         imageUrl: "/ads/main-desktop.webp",
-        landingUrl: "/promotion/summer-sale",
+        landingUrl: "/search?deal=summer",
       },
       tracking: {
         projectId: "demo-shoppingmall",

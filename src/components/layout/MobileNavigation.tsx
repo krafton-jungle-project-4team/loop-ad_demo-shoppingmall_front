@@ -1,23 +1,19 @@
-import { Grid3X3, Home, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
+import { BadgePercent, CalendarCheck2, Home, Search, UserRound } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
-import { SAMPLE_ORDER_PATH } from "@/config/demo-routes";
 import { useDemoUserProfile } from "@/hooks/useDemoUserProfile";
 import { cn } from "@/lib/utils";
-import { useCartStore } from "@/state/cart-context";
 
 const mobileItems = [
   { to: "/", label: "홈", icon: Home },
-  { to: "/products", label: "상품", icon: Grid3X3 },
-  { to: "/cart", label: "장바구니", icon: ShoppingCart },
+  { to: "/search", label: "검색", icon: Search },
+  { to: "/search?deal=summer", label: "특가", icon: BadgePercent },
+  { to: "/trips", label: "예약", icon: CalendarCheck2 },
   { to: "/login", label: "로그인", icon: UserRound },
-  { to: SAMPLE_ORDER_PATH, label: "주문", icon: ReceiptText },
 ];
 
 export function MobileNavigation() {
-  const { itemCount } = useCartStore();
   const selectedProfile = useDemoUserProfile();
-  const cartBadgeLabel = itemCount > 99 ? "99+" : String(itemCount);
 
   return (
     <nav
@@ -40,11 +36,6 @@ export function MobileNavigation() {
           >
             <span className="relative">
               <Icon aria-hidden="true" className="size-5" />
-              {to === "/cart" && itemCount > 0 ? (
-                <span className="absolute -right-2 -top-2 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-primary-foreground">
-                  {cartBadgeLabel}
-                </span>
-              ) : null}
               {to === "/login" && selectedProfile ? (
                 <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-primary ring-2 ring-background" />
               ) : null}
