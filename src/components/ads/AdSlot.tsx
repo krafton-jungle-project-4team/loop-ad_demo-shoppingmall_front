@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import { adSlots, type AdSlotId } from "@/config/ad-slots";
 import {
+  getDemoIdentity,
   loopAdSdkConfig,
   renderLoopAdPlacement,
   type AdvertisementFilledDecision,
@@ -50,22 +51,29 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
   });
   const renderState =
     renderSnapshot.key === renderKey ? renderSnapshot.state : "loading";
+  const demoIdentity = getDemoIdentity();
   const sdkTargetId = useMemo(
     () => `loopad-${slot.id.toLowerCase().replace(/_/g, "-")}`,
     [slot.id],
   );
   const fallbackDecision = useMemo(
-    () => createFallbackAdDecision(slot, loopAdSdkConfig.projectId),
-    [slot],
+    () =>
+      createFallbackAdDecision(
+        slot,
+        loopAdSdkConfig.projectId,
+        loopAdSdkConfig.promotionRunId,
+        demoIdentity?.userId ?? "demo-user-anonymous",
+      ),
+    [demoIdentity?.userId, slot],
   );
   const impressionKey = useMemo(
-    () => `${page}:${slot.id}:${slot.creativeId}`,
-    [page, slot.creativeId, slot.id],
+    () => `${page}:${slot.id}:${slot.contentId}`,
+    [page, slot.contentId, slot.id],
   );
 
   const reportDecisionEvent = useCallback(
     (
-      eventName: "ad_impression" | "ad_click",
+      eventName: "promotion_impression" | "promotion_click",
       decision: AdvertisementFilledDecision,
       source: "advertisement_sdk" | "advertisement_fallback",
     ) => {
@@ -79,13 +87,18 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
 
       emitAdEvent(payload);
       trackAdEventWithSdk(payload, {
-        experimentId: decision.tracking.experimentId,
-        variantId: decision.tracking.variantId,
-        actionId: decision.tracking.actionId,
-        mappingId: decision.tracking.mappingId,
-        creativeId: decision.tracking.creativeId || decision.ad.creativeId,
+        campaignId: decision.tracking.campaign_id,
+        promotionId: decision.tracking.promotion_id,
+        promotionRunId: decision.tracking.promotion_run_id,
+        adExperimentId: decision.tracking.ad_experiment_id,
+        promotionChannel: decision.tracking.promotion_channel,
+        segmentId: decision.tracking.segment_id,
+        contentId: decision.tracking.content_id,
+        contentOptionId: decision.tracking.content_option_id,
+        placementId: decision.tracking.placement_id,
+        targetUrl: decision.tracking.target_url,
         properties: {
-          placement_key: decision.placementKey,
+          placement_id: decision.tracking.placement_id,
           source,
           fallback: source === "advertisement_fallback",
         },
@@ -102,9 +115,9 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
       targetId: sdkTargetId,
       page,
       onImpression: (decision) =>
-        reportDecisionEvent("ad_impression", decision, "advertisement_sdk"),
+        reportDecisionEvent("promotion_impression", decision, "advertisement_sdk"),
       onClick: (decision) =>
-        reportDecisionEvent("ad_click", decision, "advertisement_sdk"),
+        reportDecisionEvent("promotion_click", decision, "advertisement_sdk"),
     })
       .then((decision) => {
         if (!isMounted) {
@@ -144,7 +157,7 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
 
     trackedImpressionKeys.add(impressionKey);
     reportDecisionEvent(
-      "ad_impression",
+      "promotion_impression",
       fallbackDecision,
       "advertisement_fallback",
     );
@@ -152,7 +165,7 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
 
   function handleAdClick() {
     reportDecisionEvent(
-      "ad_click",
+      "promotion_click",
       fallbackDecision,
       "advertisement_fallback",
     );

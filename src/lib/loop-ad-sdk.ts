@@ -18,31 +18,43 @@ export type LoopAdEventProperties = {
 export type LoopAdTrackFields = {
   eventId?: string | null;
   eventTime?: string | number | Date | null;
-  channel?: string | null;
   campaignId?: string | null;
-  ageGroup?: string | null;
-  gender?: string | null;
+  promotionId?: string | null;
+  promotionRunId?: string | null;
+  adExperimentId?: string | null;
+  promotionChannel?: string | null;
+  segmentId?: string | null;
+  contentId?: string | null;
+  contentOptionId?: string | null;
+  placementId?: string | null;
+  redirectId?: string | null;
+  landingType?: string | null;
+  landingUrl?: string | null;
+  targetUrl?: string | null;
+  hotelId?: string | null;
+  hotelCluster?: string | null;
+  hotelMarket?: string | null;
+  hotelCity?: string | null;
+  hotelCountry?: string | null;
+  checkinDate?: string | null;
+  checkoutDate?: string | null;
+  adultCount?: number | string | null;
+  childCount?: number | string | null;
+  breakfastIncluded?: boolean | number | string | null;
+  freeCancellation?: boolean | number | string | null;
+  roomType?: string | null;
+  bookingId?: string | null;
+  currency?: string | null;
   device?: string | null;
-  category?: string | null;
-  productId?: string | null;
-  inventoryStatus?: string | null;
   price?: number | null;
-  quantity?: number | null;
   revenue?: number | null;
-  couponId?: string | null;
-  orderId?: string | null;
-  experimentId?: string | null;
-  variantId?: string | null;
-  actionId?: string | null;
-  mappingId?: string | null;
-  adId?: string | null;
-  creativeId?: string | null;
-  banditPolicyId?: string | null;
-  banditArmId?: string | null;
-  banditDecisionId?: string | null;
-  rewardValue?: number | null;
   properties?: LoopAdEventProperties | null;
 };
+
+export type LoopAdEventContext = Omit<
+  LoopAdTrackFields,
+  "eventId" | "eventTime" | "properties"
+>;
 
 type LoopAdIdentity = {
   userId: string;
@@ -51,7 +63,7 @@ type LoopAdIdentity = {
 
 type LoopAdEventClient = {
   track(eventName: string, fields?: LoopAdTrackFields): void;
-  setIdentity(identity: LoopAdIdentity, context?: LoopAdTrackFields | null): void;
+  setIdentity(identity: LoopAdIdentity, context?: LoopAdEventContext | null): void;
   clearIdentity(): void;
   destroy(): void;
 };
@@ -59,34 +71,39 @@ type LoopAdEventClient = {
 type LoopAdEventSdkGlobal = {
   init(options: {
     projectId: string;
+    writeKey: string;
     identity?: LoopAdIdentity | null;
     debug?: boolean | null;
     autoTrackPageViews?: boolean | null;
     collectDomEvents?: boolean | null;
-    context?: LoopAdTrackFields | null;
+    context?: LoopAdEventContext | null;
   }): LoopAdEventClient;
   version: string;
 };
 
 export type AdvertisementFilledDecision = {
+  placementId: string;
   placementKey: string;
   status: "filled";
   ad: {
-    creativeId: string;
-    contentType: string;
     title: string;
     body: string;
-    ctaLabel: string;
-    imageUrl: string;
-    landingUrl: string;
+    cta: string;
+    targetUrl: string;
   };
   tracking: {
-    projectId: string;
-    experimentId: string;
-    variantId: string;
-    creativeId: string;
-    mappingId: string;
-    actionId: string;
+    project_id: string;
+    user_id: string;
+    campaign_id: string;
+    promotion_id: string;
+    promotion_run_id: string;
+    ad_experiment_id: string;
+    segment_id: string;
+    content_id: string;
+    content_option_id: string;
+    promotion_channel: "onsite_banner";
+    placement_id: string;
+    target_url: string;
   };
 };
 
@@ -94,6 +111,7 @@ type AdvertisementDecision =
   | AdvertisementFilledDecision
   | {
       placementKey: string;
+      placementId?: string;
       status: "empty";
       ad: null;
       tracking: null;
@@ -101,7 +119,7 @@ type AdvertisementDecision =
 
 type AdvertisementClient = {
   render(options: {
-    placementKey: string;
+    placementId: string;
     targetId: string;
     context?: Record<string, string | number | boolean | null> | null;
     onImpression?: ((decision: AdvertisementFilledDecision) => void) | null;
@@ -115,6 +133,7 @@ type AdvertisementSdkGlobal = {
     apiBaseUrl: string;
     projectId: string;
     userId: string;
+    promotionRunId: string;
     debug?: boolean | null;
   }): AdvertisementClient;
   version: string;
@@ -132,10 +151,12 @@ const LOOP_AD_EVENT_SDK_URL =
 const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
 const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
-const DEFAULT_PROJECT_ID = "demo-shoppingmall";
+const DEFAULT_PROJECT_ID = "demo_project";
+const DEFAULT_WRITE_KEY = "demo_project";
+const DEFAULT_PROMOTION_RUN_ID = "demo_project";
 const DEFAULT_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
 const DEV_AD_API_BASE_URL = "/api";
-const DEFAULT_CHANNEL = "demo-shoppingmall";
+const PROMOTION_CHANNEL = "onsite_banner";
 
 const scriptLoaders = new Map<string, Promise<void>>();
 let eventClientPromise: Promise<LoopAdEventClient | null> | null = null;
@@ -145,6 +166,10 @@ export const loopAdSdkConfig = {
   eventSdkUrl: LOOP_AD_EVENT_SDK_URL,
   advertisementSdkUrl: LOOP_AD_ADVERTISEMENT_SDK_URL,
   projectId: textEnv(import.meta.env.VITE_LOOP_AD_PROJECT_ID) ?? DEFAULT_PROJECT_ID,
+  writeKey: textEnv(import.meta.env.VITE_LOOP_AD_WRITE_KEY) ?? DEFAULT_WRITE_KEY,
+  promotionRunId:
+    textEnv(import.meta.env.VITE_LOOP_AD_PROMOTION_RUN_ID) ??
+    DEFAULT_PROMOTION_RUN_ID,
   advertisementApiBaseUrl:
     textEnv(import.meta.env.VITE_LOOP_AD_AD_API_BASE_URL) ??
     (import.meta.env.DEV ? DEV_AD_API_BASE_URL : DEFAULT_AD_API_BASE_URL),
@@ -181,6 +206,7 @@ export function initLoopAdEventSdk(): Promise<LoopAdEventClient | null> {
 
         const client = sdk.init({
           projectId: loopAdSdkConfig.projectId,
+          writeKey: loopAdSdkConfig.writeKey,
           debug: loopAdSdkConfig.debug,
           autoTrackPageViews: false,
           collectDomEvents: false,
@@ -211,6 +237,7 @@ export function renderLoopAdPlacement(options: {
     if (!client) {
       return {
         placementKey: options.placementKey,
+        placementId: options.placementKey,
         status: "empty",
         ad: null,
         tracking: null,
@@ -218,10 +245,10 @@ export function renderLoopAdPlacement(options: {
     }
 
     return client.render({
-      placementKey: options.placementKey,
+      placementId: options.placementKey,
       targetId: options.targetId,
       context: {
-        channel: DEFAULT_CHANNEL,
+        promotionChannel: PROMOTION_CHANNEL,
         page: options.page,
         device: detectDevice(),
         ...createLoopAdAdContext(),
@@ -308,6 +335,7 @@ function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient | null> {
           apiBaseUrl: loopAdSdkConfig.advertisementApiBaseUrl,
           projectId: loopAdSdkConfig.projectId,
           userId: currentIdentity.userId,
+          promotionRunId: loopAdSdkConfig.promotionRunId,
           debug: loopAdSdkConfig.debug,
         });
       })
@@ -379,7 +407,7 @@ function createPageViewFields(previousUrl?: string | null): LoopAdTrackFields {
   const page = getCurrentPageProperties(previousUrl);
 
   return {
-    channel: DEFAULT_CHANNEL,
+    promotionChannel: PROMOTION_CHANNEL,
     device: detectDevice(),
     properties: {
       page,
@@ -454,15 +482,10 @@ function storeDemoSessionId(sessionId: string): void {
   }
 }
 
-function createLoopAdSharedContext(): LoopAdTrackFields {
-  const profile = getSelectedDemoUserProfile();
-
+function createLoopAdSharedContext(): LoopAdEventContext {
   return {
-    channel: DEFAULT_CHANNEL,
+    promotionChannel: PROMOTION_CHANNEL,
     device: detectDevice(),
-    ageGroup: profile?.ageGroup,
-    gender: profile?.gender,
-    properties: profile ? createDemoUserProperties(profile) : undefined,
   };
 }
 
@@ -492,8 +515,6 @@ function withDemoUserTrackFields(fields: LoopAdTrackFields = {}): LoopAdTrackFie
 
   return {
     ...fields,
-    ageGroup: profile.ageGroup,
-    gender: profile.gender,
     properties: {
       ...(fields.properties ?? {}),
       ...createDemoUserProperties(profile),

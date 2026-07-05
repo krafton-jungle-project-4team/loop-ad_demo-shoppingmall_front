@@ -35,12 +35,16 @@ https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad
 필요한 경우 `.env.local`에서 값을 덮어씁니다.
 
 ```bash
-VITE_LOOP_AD_PROJECT_ID=demo-shoppingmall
+VITE_LOOP_AD_PROJECT_ID=demo_project
+VITE_LOOP_AD_WRITE_KEY=demo_project
+VITE_LOOP_AD_PROMOTION_RUN_ID=demo_project
 VITE_LOOP_AD_AD_API_BASE_URL=https://dashboard.api.dev.loop-ad.org/api
 VITE_LOOP_AD_DEBUG=true
 ```
 
 - `VITE_LOOP_AD_PROJECT_ID`: 두 SDK가 공유하는 프로젝트 ID입니다.
+- `VITE_LOOP_AD_WRITE_KEY`: Event SDK가 Event Collector로 보내는 public write key입니다.
+- `VITE_LOOP_AD_PROMOTION_RUN_ID`: Advertisement SDK가 banner resolve API에 넘기는 promotion run ID입니다.
 - `VITE_LOOP_AD_AD_API_BASE_URL`: Advertisement SDK가 광고 serve API를 호출할 때 쓰는 base URL입니다.
 - `VITE_LOOP_AD_DEBUG`: SDK 연동 로그를 확인할 때 `true`로 둡니다.
 
@@ -57,18 +61,18 @@ Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 
 5. 광고 API가 비어 있거나 실패할 때 로컬 fallback 광고가 남아 있는지 확인합니다.
 6. 광고 노출/클릭과 예약 흐름 이벤트가 Event SDK를 통해 전송되는지 확인합니다.
 
-예약 흐름 이벤트는 `search_submit`, `hotel_view`, `room_select`, `checkout_start`, `booking_complete`를 사용합니다.
+예약 흐름 이벤트는 최신 Event SDK 표준 이벤트명인 `hotel_search`, `hotel_detail_view`, `hotel_click`, `booking_start`, `booking_complete`를 사용합니다.
 
-fallback 광고의 노출/클릭도 같은 이벤트 이름으로 추적하며, fallback용 tracking id와 `source: "advertisement_fallback"` 속성을 함께 보냅니다.
+fallback 광고의 노출/클릭도 `promotion_impression`, `promotion_click`으로 추적하며, fallback용 tracking id와 `source: "advertisement_fallback"` 속성을 함께 보냅니다.
 
 ```ts
-sdk.track("ad_impression", {
-  channel: "demo-shoppingmall",
+sdk.track("promotion_impression", {
+  promotionChannel: "onsite_banner",
+  placementId: "C1_MAIN_TOP",
   device: "desktop",
-  creativeId: "loop-c1-summer-sale",
+  contentId: "loop-c1-summer-sale",
   properties: {
     slot_id: "C1_MAIN_TOP",
-    placement_key: "C1_MAIN_TOP",
     page: "/",
     source: "fallback"
   }

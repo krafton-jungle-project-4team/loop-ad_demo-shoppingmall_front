@@ -30,16 +30,16 @@ describe("ad events", () => {
   it("creates an ad event payload", () => {
     expect(
       createAdEventPayload(
-        "ad_click",
+        "promotion_click",
         adSlots.C1_MAIN_TOP,
         "/",
         1440,
         "2026-06-30T00:00:00.000Z",
       ),
     ).toEqual({
-      eventName: "ad_click",
+      eventName: "promotion_click",
       slotId: "C1_MAIN_TOP",
-      creativeId: "loop-c1-summer-sale",
+      contentId: "loop-c1-summer-sale",
       page: "/",
       viewport: "desktop",
       timestamp: "2026-06-30T00:00:00.000Z",
@@ -48,7 +48,7 @@ describe("ad events", () => {
 
   it("logs and dispatches ad events for demo verification", () => {
     const payload = createAdEventPayload(
-      "ad_impression",
+      "promotion_impression",
       adSlots.W1_WING,
       "/",
       1440,

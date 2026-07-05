@@ -131,27 +131,42 @@ function readStoredAttribution(storage: Storage): StoredLoopAdAttribution | null
 function pickAttributionFields(
   fields: Partial<Pick<
     LoopAdTrackFields,
-    "experimentId" | "variantId" | "actionId" | "mappingId" | "creativeId" | "adId"
+    | "campaignId"
+    | "promotionId"
+    | "promotionRunId"
+    | "adExperimentId"
+    | "promotionChannel"
+    | "segmentId"
+    | "contentId"
+    | "contentOptionId"
+    | "placementId"
+    | "targetUrl"
   >>,
 ): LoopAdTrackFields {
   return {
-    experimentId: text(fields.experimentId),
-    variantId: text(fields.variantId),
-    actionId: text(fields.actionId),
-    mappingId: text(fields.mappingId),
-    creativeId: text(fields.creativeId),
-    adId: text(fields.adId),
+    campaignId: text(fields.campaignId),
+    promotionId: text(fields.promotionId),
+    promotionRunId: text(fields.promotionRunId),
+    adExperimentId: text(fields.adExperimentId),
+    promotionChannel: text(fields.promotionChannel),
+    segmentId: text(fields.segmentId),
+    contentId: text(fields.contentId),
+    contentOptionId: text(fields.contentOptionId),
+    placementId: text(fields.placementId),
+    targetUrl: text(fields.targetUrl),
   };
 }
 
 function hasAttributionFields(fields: LoopAdTrackFields): boolean {
   return Boolean(
-    fields.experimentId ||
-      fields.variantId ||
-      fields.actionId ||
-      fields.mappingId ||
-      fields.creativeId ||
-      fields.adId,
+    fields.campaignId ||
+      fields.promotionId ||
+      fields.promotionRunId ||
+      fields.adExperimentId ||
+      fields.segmentId ||
+      fields.contentId ||
+      fields.contentOptionId ||
+      fields.placementId,
   );
 }
 

@@ -165,9 +165,7 @@ describe("getDemoIdentity", () => {
       },
     });
 
-    trackLoopAdEvent("hotel_view", {
-      ageGroup: "10s",
-      gender: "unknown",
+    trackLoopAdEvent("hotel_detail_view", {
       properties: {
         page: "/hotel/seoul-loop-city-001",
         region: "stale-region",
@@ -194,18 +192,18 @@ describe("getDemoIdentity", () => {
       expect.objectContaining({
         autoTrackPageViews: false,
         collectDomEvents: false,
+        projectId: "demo_project",
+        writeKey: "demo_project",
         context: expect.objectContaining({
-          ageGroup: "30s",
-          gender: "male",
-          properties: expect.objectContaining(expectedDemographicProperties),
+          promotionChannel: "onsite_banner",
+          device: "desktop",
         }),
       }),
     );
     expect(track).toHaveBeenCalledWith(
       "page_view",
       expect.objectContaining({
-        ageGroup: "30s",
-        gender: "male",
+        promotionChannel: "onsite_banner",
         properties: expect.objectContaining({
           ...expectedDemographicProperties,
           page: expect.objectContaining({
@@ -225,16 +223,13 @@ describe("getDemoIdentity", () => {
         sessionId: "demo-session-uuid-1",
       },
       expect.objectContaining({
-        ageGroup: "30s",
-        gender: "male",
-        properties: expect.objectContaining(expectedDemographicProperties),
+        promotionChannel: "onsite_banner",
+        device: "desktop",
       }),
     );
     expect(track).toHaveBeenCalledWith(
-      "hotel_view",
+      "hotel_detail_view",
       expect.objectContaining({
-        ageGroup: "30s",
-        gender: "male",
         properties: expect.objectContaining({
           page: "/hotel/seoul-loop-city-001",
           ...expectedDemographicProperties,

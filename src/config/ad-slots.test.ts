@@ -22,24 +22,26 @@ describe("ad slot configuration", () => {
     });
   });
 
-  it("uses unique creative ids for ad event attribution", () => {
-    const creativeIds = Object.values(adSlots).map((slot) => slot.creativeId);
+  it("uses unique content ids for ad event attribution", () => {
+    const contentIds = Object.values(adSlots).map((slot) => slot.contentId);
 
-    expect(new Set(creativeIds).size).toBe(creativeIds.length);
+    expect(new Set(contentIds).size).toBe(contentIds.length);
   });
 
   it("uses stable fallback tracking ids for each ad slot", () => {
     expect(adSlots.C1_MAIN_TOP.fallbackTracking).toEqual({
-      experimentId: "fallback-main-top",
-      variantId: "fallback-main-top-a",
-      mappingId: "fallback-main-top-mapping",
-      actionId: "fallback-main-top-action",
+      campaignId: "fallback-main-top-campaign",
+      promotionId: "fallback-main-top-promotion",
+      adExperimentId: "fallback-main-top-experiment",
+      segmentId: "fallback-main-top-segment",
+      contentOptionId: "fallback-main-top-a",
     });
     expect(adSlots.W1_WING.fallbackTracking).toEqual({
-      experimentId: "fallback-wing",
-      variantId: "fallback-wing-a",
-      mappingId: "fallback-wing-mapping",
-      actionId: "fallback-wing-action",
+      campaignId: "fallback-wing-campaign",
+      promotionId: "fallback-wing-promotion",
+      adExperimentId: "fallback-wing-experiment",
+      segmentId: "fallback-wing-segment",
+      contentOptionId: "fallback-wing-a",
     });
   });
 });

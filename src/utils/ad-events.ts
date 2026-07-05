@@ -6,13 +6,13 @@ import {
 } from "@/lib/loop-ad-sdk";
 import { rememberLoopAdAttribution } from "@/utils/ad-attribution";
 
-export type AdEventName = "ad_impression" | "ad_click";
+export type AdEventName = "promotion_impression" | "promotion_click";
 export type AdViewport = "mobile" | "tablet" | "desktop";
 
 export type AdEventPayload = {
   eventName: AdEventName;
   slotId: AdSlotId;
-  creativeId: string;
+  contentId: string;
   page: string;
   viewport: AdViewport;
   timestamp: string;
@@ -43,7 +43,7 @@ export function createAdEventPayload(
   return {
     eventName,
     slotId: slot.id,
-    creativeId: slot.creativeId,
+    contentId: slot.contentId,
     page,
     viewport: getAdViewport(width),
     timestamp,
@@ -61,8 +61,7 @@ export function createAdDecisionEventPayload(
   return {
     eventName,
     slotId: slot.id,
-    creativeId:
-      decision.tracking.creativeId || decision.ad.creativeId || slot.creativeId,
+    contentId: decision.tracking.content_id || slot.contentId,
     page,
     viewport: getAdViewport(width),
     timestamp,
@@ -85,8 +84,9 @@ export function trackAdEventWithSdk(
 ): void {
   const sdkFields: LoopAdTrackFields = {
     ...fields,
-    channel: fields.channel ?? "demo-shoppingmall",
-    creativeId: fields.creativeId ?? payload.creativeId,
+    promotionChannel: fields.promotionChannel ?? "onsite_banner",
+    contentId: fields.contentId ?? payload.contentId,
+    placementId: fields.placementId ?? payload.slotId,
     device: fields.device ?? payload.viewport,
     properties: {
       slot_id: payload.slotId,
@@ -97,10 +97,10 @@ export function trackAdEventWithSdk(
     },
   };
 
-  if (payload.eventName === "ad_click") {
+  if (payload.eventName === "promotion_click") {
     rememberLoopAdAttribution(sdkFields, {
       source: stringProperty(sdkFields.properties?.source),
-      placementKey: stringProperty(sdkFields.properties?.placement_key),
+      placementKey: sdkFields.placementId ?? undefined,
       page: payload.page,
       timestamp: payload.timestamp,
     });
