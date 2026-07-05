@@ -10,7 +10,7 @@ StayLoop Booking Demo Front는 Loop Ad SDK를 숙소 예약 UI에 붙여 보는 
 - 홈 화면의 `C1_MAIN_TOP`, 검색 결과 화면의 `W1_WING` 광고 지면을 렌더링합니다.
 - Event SDK를 앱 시작 시 초기화합니다.
 - Advertisement SDK가 광고 지면을 채우도록 target DOM을 넘깁니다.
-- SDK 로드, 광고 요청, 광고 렌더링이 실패하면 로컬 fallback 광고 decision으로 대체합니다.
+- SDK 로드, 광고 요청, 광고 렌더링이 실패하면 광고 지면은 빈 회색 슬롯으로 남깁니다.
 
 SDK 패키지 배포, Event Collector 배포, 광고 API 배포, 인프라 endpoint 계약은 이 프론트 레포의 책임 범위가 아닙니다. 해당 값이 바뀌었는지는 실제 SDK/API 배포 결과를 기준으로 확인합니다.
 
@@ -58,12 +58,12 @@ Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 
 2. Network 탭에서 Event SDK와 Advertisement SDK script가 로드되는지 확인합니다.
 3. 홈 화면의 `C1_MAIN_TOP` 지면이 광고 SDK로 채워지는지 확인합니다.
 4. `/search` 화면의 1200px 이상 레이아웃에서 `W1_WING` 지면이 보이고 광고 SDK로 채워지는지 확인합니다.
-5. 광고 API가 비어 있거나 실패할 때 로컬 fallback 광고가 남아 있는지 확인합니다.
+5. 광고 API가 비어 있거나 실패할 때 지면이 클릭/문구/이벤트 없는 빈 회색 슬롯으로 남는지 확인합니다.
 6. 광고 노출/클릭과 예약 흐름 이벤트가 Event SDK를 통해 전송되는지 확인합니다.
 
 예약 흐름 이벤트는 최신 Event SDK 표준 이벤트명인 `hotel_search`, `hotel_detail_view`, `hotel_click`, `booking_start`, `booking_complete`를 사용합니다.
 
-fallback 광고의 노출/클릭도 `promotion_impression`, `promotion_click`으로 추적하며, fallback용 tracking id와 `source: "advertisement_fallback"` 속성을 함께 보냅니다.
+광고 SDK가 실제 광고 decision을 반환한 경우에만 `promotion_impression`, `promotion_click`을 보냅니다. 빈 지면 상태에서는 fallback tracking event를 보내지 않습니다.
 
 ```ts
 sdk.track("promotion_impression", {
@@ -74,7 +74,7 @@ sdk.track("promotion_impression", {
   properties: {
     slot_id: "C1_MAIN_TOP",
     page: "/",
-    source: "fallback"
+    source: "advertisement_sdk"
   }
 });
 ```

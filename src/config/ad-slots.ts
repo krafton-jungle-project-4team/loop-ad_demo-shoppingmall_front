@@ -3,13 +3,6 @@ export type AdSlotId = "C1_MAIN_TOP" | "W1_WING";
 export type AdSlotConfig = {
   id: AdSlotId;
   contentId: string;
-  fallbackTracking: {
-    campaignId: string;
-    promotionId: string;
-    adExperimentId: string;
-    segmentId: string;
-    contentOptionId: string;
-  };
   title: string;
   description: string;
   ctaLabel: string;
@@ -22,13 +15,6 @@ export const adSlots: Record<AdSlotId, AdSlotConfig> = {
   C1_MAIN_TOP: {
     id: "C1_MAIN_TOP",
     contentId: "loop-c1-summer-sale",
-    fallbackTracking: {
-      campaignId: "fallback-main-top-campaign",
-      promotionId: "fallback-main-top-promotion",
-      adExperimentId: "fallback-main-top-experiment",
-      segmentId: "fallback-main-top-segment",
-      contentOptionId: "fallback-main-top-a",
-    },
     title: "여름 숙소 세일",
     description: "회원가와 무료 취소 가능 숙소를 한 번에 비교해보세요.",
     ctaLabel: "특가 숙소 보기",
@@ -39,13 +25,6 @@ export const adSlots: Record<AdSlotId, AdSlotConfig> = {
   W1_WING: {
     id: "W1_WING",
     contentId: "loop-w1-wing-special",
-    fallbackTracking: {
-      campaignId: "fallback-wing-campaign",
-      promotionId: "fallback-wing-promotion",
-      adExperimentId: "fallback-wing-experiment",
-      segmentId: "fallback-wing-segment",
-      contentOptionId: "fallback-wing-a",
-    },
     title: "주말 여행 추천 숙소",
     description: "도심 호텔부터 오션뷰 리조트까지 지금 예약하기 좋은 숙소",
     ctaLabel: "추천 숙소 보기",

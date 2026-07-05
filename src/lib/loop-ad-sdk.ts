@@ -120,6 +120,7 @@ type AdvertisementDecision =
 type AdvertisementClient = {
   render(options: {
     placementId: string;
+    placementKey: string;
     targetId: string;
     context?: Record<string, string | number | boolean | null> | null;
     onImpression?: ((decision: AdvertisementFilledDecision) => void) | null;
@@ -246,6 +247,7 @@ export function renderLoopAdPlacement(options: {
 
     return client.render({
       placementId: options.placementKey,
+      placementKey: options.placementKey,
       targetId: options.targetId,
       context: {
         promotionChannel: PROMOTION_CHANNEL,

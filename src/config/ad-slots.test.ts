@@ -27,21 +27,4 @@ describe("ad slot configuration", () => {
 
     expect(new Set(contentIds).size).toBe(contentIds.length);
   });
-
-  it("uses stable fallback tracking ids for each ad slot", () => {
-    expect(adSlots.C1_MAIN_TOP.fallbackTracking).toEqual({
-      campaignId: "fallback-main-top-campaign",
-      promotionId: "fallback-main-top-promotion",
-      adExperimentId: "fallback-main-top-experiment",
-      segmentId: "fallback-main-top-segment",
-      contentOptionId: "fallback-main-top-a",
-    });
-    expect(adSlots.W1_WING.fallbackTracking).toEqual({
-      campaignId: "fallback-wing-campaign",
-      promotionId: "fallback-wing-promotion",
-      adExperimentId: "fallback-wing-experiment",
-      segmentId: "fallback-wing-segment",
-      contentOptionId: "fallback-wing-a",
-    });
-  });
 });
