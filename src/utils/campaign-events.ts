@@ -3,27 +3,39 @@ import {
   trackLoopAdEvent,
   type LoopAdTrackFields,
 } from "@/lib/loop-ad-sdk";
+import { rememberLoopAdAttribution } from "@/utils/ad-attribution";
 
 type CampaignEventName = "campaign_redirect_click" | "campaign_landing";
 
 const CAMPAIGN_EVENT_STORAGE_PREFIX = "loop-ad-demo-campaign-event.v1";
 
 const CAMPAIGN_PARAM_KEYS = [
+  "loopad_campaign_id",
   "campaign_id",
   "campaignId",
   "utm_campaign",
+  "loopad_promotion_id",
   "promotion_id",
   "promotionId",
+  "loopad_promotion_run_id",
   "promotion_run_id",
   "promotionRunId",
+  "loopad_ad_experiment_id",
   "ad_experiment_id",
   "adExperimentId",
+  "loopad_promotion_channel",
+  "promotion_channel",
+  "promotionChannel",
+  "loopad_segment_id",
   "segment_id",
   "segmentId",
+  "loopad_content_id",
   "content_id",
   "contentId",
+  "loopad_content_option_id",
   "content_option_id",
   "contentOptionId",
+  "loopad_redirect_id",
   "redirect_id",
   "redirectId",
   "landing_type",
@@ -49,6 +61,10 @@ export function trackCampaignRouteEvents(
     return;
   }
 
+  rememberLoopAdAttribution(campaign.fields, {
+    source: "campaign_route",
+    page: new URL(url).pathname,
+  });
   trackCampaignEventOnce("campaign_redirect_click", campaign);
   trackCampaignEventOnce("campaign_landing", campaign);
 }
@@ -72,7 +88,7 @@ function createCampaignRouteEvent(
   }
 
   const campaignId =
-    textParam(params, "campaign_id", "campaignId", "utm_campaign") ??
+    textParam(params, "loopad_campaign_id", "campaign_id", "campaignId", "utm_campaign") ??
     textParam(params, "deal");
   const source = textParam(params, "utm_source", "source", "channel");
   const medium = textParam(params, "utm_medium", "medium");
@@ -83,20 +99,36 @@ function createCampaignRouteEvent(
     signature: createCampaignSignature(parsedUrl),
     fields: {
       campaignId,
-      promotionId: textParam(params, "promotion_id", "promotionId"),
-      promotionRunId: textParam(params, "promotion_run_id", "promotionRunId"),
-      adExperimentId: textParam(params, "ad_experiment_id", "adExperimentId"),
+      promotionId: textParam(params, "loopad_promotion_id", "promotion_id", "promotionId"),
+      promotionRunId: textParam(
+        params,
+        "loopad_promotion_run_id",
+        "promotion_run_id",
+        "promotionRunId",
+      ),
+      adExperimentId: textParam(
+        params,
+        "loopad_ad_experiment_id",
+        "ad_experiment_id",
+        "adExperimentId",
+      ),
       promotionChannel:
-        textParam(params, "promotion_channel", "promotionChannel") ??
+        textParam(
+          params,
+          "loopad_promotion_channel",
+          "promotion_channel",
+          "promotionChannel",
+        ) ??
         "campaign",
-      segmentId: textParam(params, "segment_id", "segmentId"),
-      contentId: textParam(params, "content_id", "contentId"),
+      segmentId: textParam(params, "loopad_segment_id", "segment_id", "segmentId"),
+      contentId: textParam(params, "loopad_content_id", "content_id", "contentId"),
       contentOptionId: textParam(
         params,
+        "loopad_content_option_id",
         "content_option_id",
         "contentOptionId",
       ),
-      redirectId: textParam(params, "redirect_id", "redirectId"),
+      redirectId: textParam(params, "loopad_redirect_id", "redirect_id", "redirectId"),
       landingType:
         textParam(params, "landing_type", "landingType") ??
         (textParam(params, "deal") ? "promotion_deal" : "campaign"),

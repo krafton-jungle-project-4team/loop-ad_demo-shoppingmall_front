@@ -140,6 +140,7 @@ function pickAttributionFields(
     | "contentId"
     | "contentOptionId"
     | "placementId"
+    | "redirectId"
     | "targetUrl"
   >>,
 ): LoopAdTrackFields {
@@ -153,6 +154,7 @@ function pickAttributionFields(
     contentId: text(fields.contentId),
     contentOptionId: text(fields.contentOptionId),
     placementId: text(fields.placementId),
+    redirectId: text(fields.redirectId),
     targetUrl: text(fields.targetUrl),
   };
 }
@@ -166,7 +168,8 @@ function hasAttributionFields(fields: LoopAdTrackFields): boolean {
       fields.segmentId ||
       fields.contentId ||
       fields.contentOptionId ||
-      fields.placementId,
+      fields.placementId ||
+      fields.redirectId,
   );
 }
 

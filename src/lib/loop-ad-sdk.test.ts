@@ -5,6 +5,7 @@ import {
   trackLoopAdEvent,
   trackLoopAdPageView,
 } from "@/lib/loop-ad-sdk";
+import { trackCampaignRouteEvents } from "@/utils/campaign-events";
 
 const SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const PROFILE_STORAGE_KEY = "loop-ad-demo-user-profile.v1";
@@ -40,16 +41,19 @@ class MemoryStorage implements Storage {
 function stubBrowserStorage(
   localStorage = new MemoryStorage(),
   sessionStorage = new MemoryStorage(),
+  href = "https://demo-shoppingmall.dev.loop-ad.org/login",
 ): { localStorage: Storage; sessionStorage: Storage } {
+  const url = new URL(href);
+
   vi.stubGlobal("window", {
     dispatchEvent: vi.fn(),
     innerWidth: 1440,
     localStorage,
     location: {
-      hash: "",
-      href: "https://demo-shoppingmall.dev.loop-ad.org/login",
-      pathname: "/login",
-      search: "",
+      hash: url.hash,
+      href: url.href,
+      pathname: url.pathname,
+      search: url.search,
     },
     sessionStorage,
   });
@@ -292,6 +296,82 @@ describe("getDemoIdentity", () => {
           name: "loop-ad_event_sdk",
           version: "test",
         }),
+      }),
+    );
+  });
+
+  it("carries loopad redirect attribution into direct booking events", async () => {
+    const href =
+      "https://demo-shoppingmall.dev.loop-ad.org/login" +
+      "?loopad_campaign_id=campaign-real" +
+      "&loopad_promotion_id=promotion-real" +
+      "&loopad_promotion_run_id=run-real" +
+      "&loopad_ad_experiment_id=exp-real" +
+      "&loopad_promotion_channel=email" +
+      "&loopad_segment_id=segment-real" +
+      "&loopad_content_id=content-real" +
+      "&loopad_content_option_id=option-real" +
+      "&loopad_redirect_id=redirect-real";
+    const { localStorage } = stubBrowserStorage(
+      new MemoryStorage(),
+      new MemoryStorage(),
+      href,
+    );
+    localStorage.setItem(PROFILE_STORAGE_KEY, "busan-male-30s");
+    vi.stubGlobal("document", {
+      referrer: "https://dashboard.api.dev.loop-ad.org/r/redirect-real",
+      title: "StayLoop Booking Demo",
+    });
+    const fetch = vi.fn((input: RequestInfo | URL, options?: RequestInit) => {
+      void input;
+      void options;
+      return Promise.resolve({ status: 202 } as Response);
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    trackCampaignRouteEvents(window.location.href);
+    trackLoopAdEvent("booking_complete", {
+      bookingId: "booking-1",
+      properties: {
+        booking_status: "completed",
+      },
+    });
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
+    const sentPayloads = fetch.mock.calls.map(([, options]) =>
+      JSON.parse(String((options as RequestInit).body)),
+    );
+    const landingPayload = sentPayloads.find(
+      (payload) => payload.event_name === "campaign_landing",
+    );
+    const bookingPayload = sentPayloads.find(
+      (payload) => payload.event_name === "booking_complete",
+    );
+    const landingProperties = JSON.parse(landingPayload.properties_json);
+    const bookingProperties = JSON.parse(bookingPayload.properties_json);
+
+    for (const properties of [landingProperties, bookingProperties]) {
+      expect(properties).toEqual(
+        expect.objectContaining({
+          campaign_id: "campaign-real",
+          promotion_id: "promotion-real",
+          promotion_run_id: "run-real",
+          ad_experiment_id: "exp-real",
+          promotion_channel: "email",
+          segment_id: "segment-real",
+          content_id: "content-real",
+          content_option_id: "option-real",
+          redirect_id: "redirect-real",
+        }),
+      );
+    }
+    expect(bookingProperties).toEqual(
+      expect.objectContaining({
+        booking_id: "booking-1",
+        booking_status: "completed",
       }),
     );
   });

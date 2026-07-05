@@ -2,6 +2,7 @@ import {
   getSelectedDemoUserProfile,
   type DemoUserProfile,
 } from "@/lib/demo-user";
+import { getLoopAdAttributionFields } from "@/utils/ad-attribution";
 
 type LoopAdPropertyValue =
   | string
@@ -167,7 +168,6 @@ const LOOP_AD_ADVERTISEMENT_SDK_URL =
 const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const DEFAULT_PROJECT_ID = "demo_project";
 const DEFAULT_WRITE_KEY = "demo_project";
-const DEFAULT_PROMOTION_RUN_ID = "demo_project";
 const DEFAULT_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
 const DEV_AD_API_BASE_URL = "/api";
 const EVENT_INGEST_ENDPOINT = "https://event.api.dev.loop-ad.org";
@@ -197,9 +197,7 @@ export const loopAdSdkConfig = {
   advertisementSdkUrl: LOOP_AD_ADVERTISEMENT_SDK_URL,
   projectId: textEnv(import.meta.env.VITE_LOOP_AD_PROJECT_ID) ?? DEFAULT_PROJECT_ID,
   writeKey: textEnv(import.meta.env.VITE_LOOP_AD_WRITE_KEY) ?? DEFAULT_WRITE_KEY,
-  promotionRunId:
-    textEnv(import.meta.env.VITE_LOOP_AD_PROMOTION_RUN_ID) ??
-    DEFAULT_PROMOTION_RUN_ID,
+  promotionRunId: textEnv(import.meta.env.VITE_LOOP_AD_PROMOTION_RUN_ID) ?? "",
   advertisementApiBaseUrl:
     textEnv(import.meta.env.VITE_LOOP_AD_AD_API_BASE_URL) ??
     (import.meta.env.DEV ? DEV_AD_API_BASE_URL : DEFAULT_AD_API_BASE_URL),
@@ -304,7 +302,7 @@ export function trackLoopAdEvent(eventName: string, fields?: LoopAdTrackFields):
     return;
   }
 
-  const trackFields = withDemoUserTrackFields(fields);
+  const trackFields = withDemoUserTrackFields(withLoopAdAttributionFields(fields));
 
   if (shouldUseDirectCollectorTransport(eventName)) {
     sendLoopAdEventDirectly(eventName, identity, trackFields);
@@ -378,6 +376,14 @@ function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient | null> {
   const identity = getDemoIdentity();
 
   if (!identity) {
+    return Promise.resolve(null);
+  }
+
+  if (!loopAdSdkConfig.promotionRunId) {
+    if (loopAdSdkConfig.debug) {
+      console.info("Loop Ad Advertisement SDK skipped without a promotion run id.");
+    }
+
     return Promise.resolve(null);
   }
 
@@ -795,6 +801,21 @@ function withDemoUserTrackFields(fields: LoopAdTrackFields = {}): LoopAdTrackFie
     properties: {
       ...(fields.properties ?? {}),
       ...createDemoUserProperties(profile),
+    },
+  };
+}
+
+function withLoopAdAttributionFields(
+  fields: LoopAdTrackFields = {},
+): LoopAdTrackFields {
+  const attributionFields = getLoopAdAttributionFields();
+
+  return {
+    ...attributionFields,
+    ...fields,
+    properties: {
+      ...(attributionFields.properties ?? {}),
+      ...(fields.properties ?? {}),
     },
   };
 }
