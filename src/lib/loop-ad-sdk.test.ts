@@ -148,6 +148,12 @@ describe("getDemoIdentity", () => {
       referrer: "https://example.test/start",
       title: "StayLoop Booking Demo",
     });
+    const fetch = vi.fn((input: RequestInfo | URL, options?: RequestInit) => {
+      void input;
+      void options;
+      return Promise.resolve({ status: 202 } as Response);
+    });
+    vi.stubGlobal("fetch", fetch);
 
     const track = vi.fn();
     const setIdentity = vi.fn();
@@ -200,23 +206,6 @@ describe("getDemoIdentity", () => {
         }),
       }),
     );
-    expect(track).toHaveBeenCalledWith(
-      "page_view",
-      expect.objectContaining({
-        promotionChannel: "onsite_banner",
-        properties: expect.objectContaining({
-          ...expectedDemographicProperties,
-          page: expect.objectContaining({
-            path: "/login",
-            previous_url: "https://demo-shoppingmall.dev.loop-ad.org/",
-            referrer: "https://example.test/start",
-            title: "StayLoop Booking Demo",
-            url: "https://demo-shoppingmall.dev.loop-ad.org/login",
-          }),
-          route_group: "/login",
-        }),
-      }),
-    );
     expect(setIdentity).toHaveBeenCalledWith(
       {
         userId: "demo-user-busan-male-30s",
@@ -227,12 +216,81 @@ describe("getDemoIdentity", () => {
         device: "desktop",
       }),
     );
-    expect(track).toHaveBeenCalledWith(
-      "hotel_detail_view",
+    expect(track).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledWith(
+      "https://event.api.dev.loop-ad.org",
       expect.objectContaining({
-        properties: expect.objectContaining({
-          page: "/hotel/seoul-loop-city-001",
-          ...expectedDemographicProperties,
+        body: expect.any(String),
+        credentials: "omit",
+        headers: { "Content-Type": "application/json" },
+        keepalive: true,
+        method: "POST",
+      }),
+    );
+
+    const sentPayloads = fetch.mock.calls.map(([, options]) =>
+      JSON.parse(String((options as RequestInit).body)),
+    );
+    const pageViewPayload = sentPayloads.find(
+      (payload) => payload.event_name === "page_view",
+    );
+    const hotelDetailPayload = sentPayloads.find(
+      (payload) => payload.event_name === "hotel_detail_view",
+    );
+    const pageViewProperties = JSON.parse(pageViewPayload.properties_json);
+    const hotelDetailProperties = JSON.parse(hotelDetailPayload.properties_json);
+
+    expect(pageViewPayload).toEqual(
+      expect.objectContaining({
+        project_id: "demo_project",
+        write_key: "demo_project",
+        schema_version: "hotel_rec_promo.v1",
+        event_id: expect.stringMatching(/^evt_/),
+        event_name: "page_view",
+        source: "browser_sdk",
+        user_id: "demo-user-busan-male-30s",
+        session_id: "demo-session-uuid-1",
+      }),
+    );
+    expect(pageViewProperties).toEqual(
+      expect.objectContaining({
+        ...expectedDemographicProperties,
+        promotion_channel: "onsite_banner",
+        page: expect.objectContaining({
+          path: "/login",
+          previous_url: "https://demo-shoppingmall.dev.loop-ad.org/",
+          referrer: "https://example.test/start",
+          title: "StayLoop Booking Demo",
+          url: "https://demo-shoppingmall.dev.loop-ad.org/login",
+        }),
+        route_group: "/login",
+        sdk: expect.objectContaining({
+          name: "loop-ad_event_sdk",
+          version: "test",
+        }),
+      }),
+    );
+    expect(hotelDetailPayload).toEqual(
+      expect.objectContaining({
+        event_name: "hotel_detail_view",
+        user_id: "demo-user-busan-male-30s",
+        session_id: "demo-session-uuid-1",
+      }),
+    );
+    expect(hotelDetailProperties).toEqual(
+      expect.objectContaining({
+        ...expectedDemographicProperties,
+        page: expect.objectContaining({
+          path: "/login",
+          referrer: "https://example.test/start",
+          title: "StayLoop Booking Demo",
+          url: "https://demo-shoppingmall.dev.loop-ad.org/login",
+        }),
+        page_path: "/login",
+        sdk: expect.objectContaining({
+          name: "loop-ad_event_sdk",
+          version: "test",
         }),
       }),
     );

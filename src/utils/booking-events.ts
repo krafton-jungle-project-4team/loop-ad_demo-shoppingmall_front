@@ -10,7 +10,8 @@ export type BookingEventName =
   | "hotel_detail_view"
   | "hotel_click"
   | "booking_start"
-  | "booking_complete";
+  | "booking_complete"
+  | "booking_cancel";
 
 const DEFAULT_CURRENCY = "KRW";
 const INVENTORY_STATUS_AVAILABLE = "available";
@@ -42,19 +43,7 @@ export function trackHotelView(hotel: Hotel, searchState: SearchState): void {
   });
 }
 
-export function trackRoomSelect(
-  hotel: Hotel,
-  room: Room,
-  searchState: SearchState,
-): void {
-  const price = calculatePrice({
-    pricePerNight: room.pricePerNight,
-    originalPrice: room.originalPrice,
-    checkIn: searchState.checkIn,
-    checkOut: searchState.checkOut,
-    rooms: searchState.rooms,
-  });
-
+export function trackHotelClick(hotel: Hotel, searchState: SearchState): void {
   trackBookingEvent("hotel_click", {
     hotelId: hotel.id,
     hotelMarket: hotel.destinationId,
@@ -63,19 +52,13 @@ export function trackRoomSelect(
     checkoutDate: searchState.checkOut,
     adultCount: searchState.adults,
     childCount: searchState.children,
-    roomType: room.name,
-    breakfastIncluded: room.breakfastIncluded,
-    freeCancellation: room.refundable,
-    price: room.pricePerNight,
-    revenue: price.total,
+    freeCancellation: hotel.refundable,
+    price: hotel.pricePerNight,
     currency: DEFAULT_CURRENCY,
     properties: {
       ...createHotelProperties(hotel),
-      ...createRoomProperties(room),
       ...createSearchProperties(searchState),
-      nights: price.nights,
-      booking_value: price.total,
-      route_group: "hotel-detail",
+      route_group: "search-results",
     },
   });
 }
@@ -144,6 +127,37 @@ export function trackBookingComplete(booking: StoredBooking): void {
       inventory_status: INVENTORY_STATUS_AVAILABLE,
       is_booking: 1,
       route_group: "booking-complete",
+    },
+  });
+}
+
+export function trackBookingCancel(
+  booking: StoredBooking,
+  reason = "user_cancelled",
+): void {
+  trackBookingEvent("booking_cancel", {
+    hotelId: booking.hotelId,
+    checkinDate: booking.checkIn,
+    checkoutDate: booking.checkOut,
+    adultCount: booking.adults,
+    childCount: booking.children,
+    roomType: booking.roomName,
+    bookingId: booking.bookingNumber,
+    revenue: booking.total,
+    currency: DEFAULT_CURRENCY,
+    properties: {
+      hotel_id: booking.hotelId,
+      hotel_name: booking.hotelName,
+      room_id: booking.roomId,
+      room_name: booking.roomName,
+      check_in: booking.checkIn,
+      check_out: booking.checkOut,
+      adults: booking.adults,
+      children: booking.children,
+      rooms: booking.rooms,
+      cancellation_reason: reason,
+      cancelled_at: new Date().toISOString(),
+      route_group: "trips",
     },
   });
 }

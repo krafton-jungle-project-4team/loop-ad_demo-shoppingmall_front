@@ -112,6 +112,7 @@ export function CheckoutPage() {
       total: price.total,
       paymentOption,
       cancellation: hotel.policies.cancellation,
+      status: 'confirmed',
     };
 
     saveLastBooking(booking);

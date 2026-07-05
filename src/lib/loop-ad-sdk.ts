@@ -61,6 +61,19 @@ type LoopAdIdentity = {
   sessionId: string;
 };
 
+type LoopAdCollectorPayload = {
+  project_id: string;
+  write_key: string;
+  schema_version: "hotel_rec_promo.v1";
+  event_id: string;
+  event_name: string;
+  event_time: string;
+  source: "browser_sdk";
+  user_id: string;
+  session_id: string;
+  properties_json: string;
+};
+
 type LoopAdEventClient = {
   track(eventName: string, fields?: LoopAdTrackFields): void;
   setIdentity(identity: LoopAdIdentity, context?: LoopAdEventContext | null): void;
@@ -157,10 +170,26 @@ const DEFAULT_WRITE_KEY = "demo_project";
 const DEFAULT_PROMOTION_RUN_ID = "demo_project";
 const DEFAULT_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
 const DEV_AD_API_BASE_URL = "/api";
+const EVENT_INGEST_ENDPOINT = "https://event.api.dev.loop-ad.org";
+const EVENT_SCHEMA_VERSION = "hotel_rec_promo.v1";
 const PROMOTION_CHANNEL = "onsite_banner";
+const DIRECT_COLLECTOR_EVENT_NAMES = new Set([
+  "page_view",
+  "promotion_impression",
+  "promotion_click",
+  "campaign_redirect_click",
+  "campaign_landing",
+  "hotel_search",
+  "hotel_click",
+  "hotel_detail_view",
+  "booking_start",
+  "booking_complete",
+  "booking_cancel",
+]);
 
 const scriptLoaders = new Map<string, Promise<void>>();
 let eventClientPromise: Promise<LoopAdEventClient | null> | null = null;
+let eventClientInstance: LoopAdEventClient | null = null;
 let advertisementClientPromise: Promise<AdvertisementClient | null> | null = null;
 
 export const loopAdSdkConfig = {
@@ -202,6 +231,7 @@ export function initLoopAdEventSdk(): Promise<LoopAdEventClient | null> {
 
         if (!currentIdentity) {
           eventClientPromise = null;
+          eventClientInstance = null;
           return null;
         }
 
@@ -215,11 +245,13 @@ export function initLoopAdEventSdk(): Promise<LoopAdEventClient | null> {
         });
 
         client.setIdentity(currentIdentity, createLoopAdSharedContext());
+        eventClientInstance = client;
 
         return client;
       })
       .catch((error: unknown) => {
         eventClientPromise = null;
+        eventClientInstance = null;
         throw error;
       });
   }
@@ -262,7 +294,9 @@ export function renderLoopAdPlacement(options: {
 }
 
 export function trackLoopAdEvent(eventName: string, fields?: LoopAdTrackFields): void {
-  if (!getDemoIdentity()) {
+  const identity = getDemoIdentity();
+
+  if (!identity) {
     if (loopAdSdkConfig.debug) {
       console.info("Loop Ad Event SDK tracking skipped before demo login.");
     }
@@ -270,8 +304,41 @@ export function trackLoopAdEvent(eventName: string, fields?: LoopAdTrackFields):
     return;
   }
 
+  const trackFields = withDemoUserTrackFields(fields);
+
+  if (shouldUseDirectCollectorTransport(eventName)) {
+    sendLoopAdEventDirectly(eventName, identity, trackFields);
+
+    void initLoopAdEventSdk().catch((error: unknown) => {
+      if (loopAdSdkConfig.debug) {
+        console.warn("Loop Ad Event SDK preload skipped.", error);
+      }
+    });
+
+    return;
+  }
+
+  const readyClient = eventClientInstance;
+
+  if (readyClient) {
+    readyClient.track(eventName, trackFields);
+    return;
+  }
+
+  if (shouldUseDirectCollectorFallback()) {
+    sendLoopAdEventDirectly(eventName, identity, trackFields);
+
+    void initLoopAdEventSdk().catch((error: unknown) => {
+      if (loopAdSdkConfig.debug) {
+        console.warn("Loop Ad Event SDK preload skipped.", error);
+      }
+    });
+
+    return;
+  }
+
   void initLoopAdEventSdk()
-    .then((client) => client?.track(eventName, withDemoUserTrackFields(fields)))
+    .then((client) => client?.track(eventName, trackFields))
     .catch((error: unknown) => {
       if (loopAdSdkConfig.debug) {
         console.warn("Loop Ad Event SDK tracking skipped.", error);
@@ -440,6 +507,214 @@ function getCurrentPageProperties(previousUrl?: string | null): LoopAdEventPrope
   };
 }
 
+function shouldUseDirectCollectorTransport(eventName: string): boolean {
+  return DIRECT_COLLECTOR_EVENT_NAMES.has(eventName);
+}
+
+function shouldUseDirectCollectorFallback(): boolean {
+  return typeof window !== "undefined" && !window.LoopAdEventSDK;
+}
+
+function sendLoopAdEventDirectly(
+  eventName: string,
+  identity: LoopAdIdentity,
+  fields: LoopAdTrackFields,
+): void {
+  const payload = createLoopAdCollectorPayload(eventName, identity, fields);
+  const body = JSON.stringify(payload);
+
+  if (typeof fetch === "function") {
+    void fetch(EVENT_INGEST_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "omit",
+      keepalive: true,
+      body,
+    }).catch((error: unknown) => {
+      if (loopAdSdkConfig.debug) {
+        console.warn("Loop Ad Event SDK direct event send failed.", error);
+      }
+    });
+
+    return;
+  }
+
+  if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+    const blob = new Blob([body], { type: "application/json" });
+    navigator.sendBeacon(EVENT_INGEST_ENDPOINT, blob);
+  }
+}
+
+function createLoopAdCollectorPayload(
+  eventName: string,
+  identity: LoopAdIdentity,
+  fields: LoopAdTrackFields,
+): LoopAdCollectorPayload {
+  return {
+    project_id: loopAdSdkConfig.projectId,
+    write_key: loopAdSdkConfig.writeKey,
+    schema_version: EVENT_SCHEMA_VERSION,
+    event_id: textField(fields.eventId) ?? createSdkId("evt"),
+    event_name: eventName,
+    event_time: eventTime(fields.eventTime),
+    source: "browser_sdk",
+    user_id: identity.userId,
+    session_id: identity.sessionId,
+    properties_json: serializeProperties(createDirectCollectorProperties(fields)),
+  };
+}
+
+function createDirectCollectorProperties(
+  fields: LoopAdTrackFields,
+): LoopAdEventProperties {
+  const fieldProperties = fields.properties ?? {};
+  const page = objectProperty(fieldProperties.page) ?? getCurrentPageProperties();
+  const pagePath = textField(fieldProperties.page_path) ?? textField(page.path) ?? "";
+
+  return {
+    ...propertiesFromTrackFields(fields),
+    ...fieldProperties,
+    page_path: pagePath,
+    page,
+    sdk: {
+      name: "loop-ad_event_sdk",
+      version: window.LoopAdEventSDK?.version ?? "direct-transport",
+    },
+  };
+}
+
+function objectProperty(value: unknown): LoopAdEventProperties | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as LoopAdEventProperties;
+}
+
+function propertiesFromTrackFields(fields: LoopAdTrackFields): LoopAdEventProperties {
+  const properties: LoopAdEventProperties = {};
+
+  setProperty(properties, "campaign_id", textField(fields.campaignId));
+  setProperty(properties, "promotion_id", textField(fields.promotionId));
+  setProperty(properties, "promotion_run_id", textField(fields.promotionRunId));
+  setProperty(properties, "ad_experiment_id", textField(fields.adExperimentId));
+  setProperty(properties, "promotion_channel", textField(fields.promotionChannel));
+  setProperty(properties, "segment_id", textField(fields.segmentId));
+  setProperty(properties, "content_id", textField(fields.contentId));
+  setProperty(properties, "content_option_id", textField(fields.contentOptionId));
+  setProperty(properties, "placement_id", textField(fields.placementId));
+  setProperty(properties, "redirect_id", textField(fields.redirectId));
+  setProperty(properties, "landing_type", textField(fields.landingType));
+  setProperty(properties, "landing_url", textField(fields.landingUrl));
+  setProperty(properties, "target_url", textField(fields.targetUrl));
+  setProperty(properties, "hotel_id", textField(fields.hotelId));
+  setProperty(properties, "hotel_cluster", textField(fields.hotelCluster));
+  setProperty(properties, "hotel_market", textField(fields.hotelMarket));
+  setProperty(properties, "hotel_city", textField(fields.hotelCity));
+  setProperty(properties, "hotel_country", textField(fields.hotelCountry));
+  setProperty(properties, "checkin_date", textField(fields.checkinDate));
+  setProperty(properties, "checkout_date", textField(fields.checkoutDate));
+  setProperty(properties, "adult_count", integerText(fields.adultCount));
+  setProperty(properties, "child_count", integerText(fields.childCount));
+  setProperty(properties, "price", decimalText(fields.price));
+  setProperty(properties, "breakfast_included", flagText(fields.breakfastIncluded));
+  setProperty(properties, "free_cancellation", flagText(fields.freeCancellation));
+  setProperty(properties, "room_type", textField(fields.roomType));
+  setProperty(properties, "booking_id", textField(fields.bookingId));
+  setProperty(properties, "revenue", decimalText(fields.revenue));
+  setProperty(properties, "currency", textField(fields.currency));
+  setProperty(properties, "device", textField(fields.device));
+
+  return properties;
+}
+
+function setProperty(
+  properties: LoopAdEventProperties,
+  key: string,
+  value: LoopAdPropertyValue | undefined,
+): void {
+  if (value !== null && value !== undefined && value !== "") {
+    properties[key] = value;
+  }
+}
+
+function eventTime(value: LoopAdTrackFields["eventTime"]): string {
+  if (value instanceof Date && Number.isFinite(value.getTime())) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return new Date(value).toISOString();
+  }
+
+  return textField(value) ?? new Date().toISOString();
+}
+
+function integerText(value: unknown): string | undefined {
+  const normalized = numberOrNull(value);
+
+  if (normalized === null) {
+    return undefined;
+  }
+
+  return String(Math.max(0, Math.trunc(normalized)));
+}
+
+function decimalText(value: unknown): string | undefined {
+  const normalized = numberOrNull(value);
+
+  if (normalized === null) {
+    return undefined;
+  }
+
+  return String(Math.round(normalized * 100) / 100);
+}
+
+function flagText(value: unknown): string | undefined {
+  if (typeof value === "boolean") {
+    return value ? "1" : "0";
+  }
+
+  const normalized = numberOrNull(value);
+
+  if (normalized !== null) {
+    return normalized === 0 ? "0" : "1";
+  }
+
+  const stringValue = textField(value)?.toLowerCase();
+
+  if (!stringValue) {
+    return undefined;
+  }
+
+  if (["true", "yes", "y"].includes(stringValue)) {
+    return "1";
+  }
+
+  if (["false", "no", "n"].includes(stringValue)) {
+    return "0";
+  }
+
+  return undefined;
+}
+
+function numberOrNull(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const normalized = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(normalized) ? normalized : null;
+}
+
+function serializeProperties(properties: LoopAdEventProperties): string {
+  try {
+    return JSON.stringify(properties);
+  } catch {
+    return "{}";
+  }
+}
+
 export function getDemoIdentity(): LoopAdIdentity | null {
   const profile = getSelectedDemoUserProfile();
 
@@ -548,6 +823,15 @@ function createId(prefix: string): string {
   return `${prefix}-${value}`;
 }
 
+function createSdkId(prefix: string): string {
+  const value =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+
+  return `${prefix}_${value}`;
+}
+
 function detectDevice(): "mobile" | "tablet" | "desktop" {
   if (typeof window === "undefined") {
     return "desktop";
@@ -562,6 +846,15 @@ function detectDevice(): "mobile" | "tablet" | "desktop" {
   }
 
   return "desktop";
+}
+
+function textField(value: unknown): string | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  const normalized = String(value).trim();
+  return normalized || undefined;
 }
 
 function textEnv(value: unknown): string | null {

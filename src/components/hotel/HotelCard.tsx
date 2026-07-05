@@ -5,6 +5,7 @@ import type { Hotel } from '../../types/hotel';
 import type { SearchState } from '../../types/search';
 import { cn } from '../../utils/cn';
 import { formatCurrency, getPropertyTypeLabel, getStars } from '../../utils/format';
+import { trackHotelClick } from '../../utils/booking-events';
 import { calculatePrice } from '../../utils/pricing';
 import { createSearchParams } from '../../utils/searchParams';
 import { Badge } from '../common/Badge';
@@ -26,12 +27,13 @@ export function HotelCard({ hotel, searchState }: HotelCardProps) {
     rooms: searchState.rooms,
   });
   const detailPath = `/hotel/${hotel.id}?${createSearchParams(searchState)}`;
+  const handleHotelClick = () => trackHotelClick(hotel, searchState);
 
   return (
     <article
       className="grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lift md:grid-cols-[240px_1fr] lg:grid-cols-[230px_1fr]"
     >
-      <Link className="image-fallback relative min-h-[220px] overflow-hidden md:min-h-full" to={detailPath}>
+      <Link className="image-fallback relative min-h-[220px] overflow-hidden md:min-h-full" to={detailPath} onClick={handleHotelClick}>
         <img
           className="h-full w-full object-cover transition duration-500 hover:scale-105"
           src={hotel.images[0]}
@@ -53,7 +55,7 @@ export function HotelCard({ hotel, searchState }: HotelCardProps) {
             </span>
             <span className="text-xs font-semibold text-ink-500">{getPropertyTypeLabel(hotel.propertyType)}</span>
           </div>
-          <Link to={detailPath} className="text-xl font-bold text-ink-900 hover:text-loop-700">
+          <Link to={detailPath} className="text-xl font-bold text-ink-900 hover:text-loop-700" onClick={handleHotelClick}>
             {hotel.name}
           </Link>
           <div className="mt-2 flex items-center gap-1.5 text-sm text-ink-500">
@@ -86,7 +88,7 @@ export function HotelCard({ hotel, searchState }: HotelCardProps) {
             <p className="text-2xl font-bold text-ink-900">{formatCurrency(hotel.pricePerNight)}</p>
             <p className="mt-1 text-sm text-ink-500">총 {formatCurrency(price.total)}</p>
             <p className="text-xs text-ink-500">세금 및 수수료 포함</p>
-            <Link className={buttonClassName({ className: 'mt-4 w-full' })} to={detailPath}>
+            <Link className={buttonClassName({ className: 'mt-4 w-full' })} to={detailPath} onClick={handleHotelClick}>
               자세히 보기
             </Link>
           </div>

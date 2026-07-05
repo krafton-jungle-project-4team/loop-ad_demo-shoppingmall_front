@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
 import { trackLoopAdPageView } from "@/lib/loop-ad-sdk";
+import { trackCampaignRouteEvents } from "@/utils/campaign-events";
 
 export function AppLayout() {
   return (
@@ -26,7 +27,10 @@ function PageViewTracker() {
   const previousUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
-    trackLoopAdPageView(previousUrlRef.current);
+    const previousUrl = previousUrlRef.current;
+
+    trackLoopAdPageView(previousUrl);
+    trackCampaignRouteEvents(window.location.href, previousUrl);
     previousUrlRef.current = window.location.href;
   }, [location.hash, location.pathname, location.search]);
 

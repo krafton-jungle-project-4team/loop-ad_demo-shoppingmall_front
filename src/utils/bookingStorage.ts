@@ -6,6 +6,20 @@ export function saveLastBooking(booking: StoredBooking): void {
   sessionStorage.setItem(BOOKING_STORAGE_KEY, JSON.stringify(booking));
 }
 
+export function cancelLastBooking(
+  booking: StoredBooking,
+  cancelledAt = new Date().toISOString(),
+): StoredBooking {
+  const cancelledBooking: StoredBooking = {
+    ...booking,
+    status: 'cancelled',
+    cancelledAt,
+  };
+
+  saveLastBooking(cancelledBooking);
+  return cancelledBooking;
+}
+
 export function getLastBooking(): StoredBooking | null {
   const rawBooking = sessionStorage.getItem(BOOKING_STORAGE_KEY);
 

@@ -9,6 +9,7 @@ import {
 } from "@/lib/demo-user";
 import { setLoopAdDemoUserIdentity } from "@/lib/loop-ad-sdk";
 import { cn } from "@/lib/utils";
+import { trackCampaignRouteEvents } from "@/utils/campaign-events";
 
 export function LoginPage() {
   const selectedProfile = useDemoUserProfile();
@@ -16,6 +17,7 @@ export function LoginPage() {
   function handleSelectProfile(profile: DemoUserProfile) {
     selectDemoUserProfile(profile.type);
     setLoopAdDemoUserIdentity();
+    trackCampaignRouteEvents(window.location.href);
   }
 
   return (

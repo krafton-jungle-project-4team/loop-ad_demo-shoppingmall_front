@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Search } from 'lucide-react';
+import { CalendarDays, MapPin, Search, XCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -8,7 +8,8 @@ import { Header } from '../components/layout/Header';
 import { PageContainer } from '../components/layout/PageContainer';
 import { hotels } from '../data/hotels';
 import type { StoredBooking } from '../types/booking';
-import { getLastBooking } from '../utils/bookingStorage';
+import { cancelLastBooking, getLastBooking } from '../utils/bookingStorage';
+import { trackBookingCancel } from '../utils/booking-events';
 import { formatCurrency, formatDateRange } from '../utils/format';
 import { calculatePrice } from '../utils/pricing';
 import { DEFAULT_SEARCH_STATE } from '../utils/searchParams';
@@ -41,13 +42,24 @@ function createFallbackBooking(): StoredBooking {
     total: price.total,
     paymentOption: 'now',
     cancellation: hotel.policies.cancellation,
+    status: 'confirmed',
   };
 }
 
 export function TripsPage() {
-  const [storedBooking] = useState<StoredBooking | null>(() => getLastBooking());
+  const [storedBooking, setStoredBooking] = useState<StoredBooking | null>(() => getLastBooking());
   const booking = useMemo(() => storedBooking || createFallbackBooking(), [storedBooking]);
   const hotel = hotels.find((item) => item.id === booking.hotelId) || hotels[0];
+  const isCancelled = booking.status === 'cancelled';
+
+  function handleBookingCancel() {
+    if (isCancelled) {
+      return;
+    }
+
+    trackBookingCancel(booking);
+    setStoredBooking(cancelLastBooking(booking));
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -73,7 +85,9 @@ export function TripsPage() {
             <div className="p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <span className="inline-flex rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">예약 확정</span>
+                  <span className={isCancelled ? 'inline-flex rounded-md bg-rose-50 px-2 py-1 text-xs font-bold text-rose-700' : 'inline-flex rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700'}>
+                    {isCancelled ? '예약 취소됨' : '예약 확정'}
+                  </span>
                   <h2 className="mt-3 text-2xl font-bold text-ink-900">{booking.hotelName}</h2>
                   <p className="mt-1 text-sm text-ink-500">{booking.roomName}</p>
                 </div>
@@ -89,6 +103,9 @@ export function TripsPage() {
                   value={`성인 ${booking.adults}명${booking.children ? `, 아동 ${booking.children}명` : ''} · 객실 ${booking.rooms}개`}
                 />
                 <InfoBlock icon={<Search size={18} aria-hidden="true" />} label="총 결제 금액" value={formatCurrency(booking.total)} />
+                {booking.cancelledAt ? (
+                  <InfoBlock icon={<XCircle size={18} aria-hidden="true" />} label="취소 일시" value={new Date(booking.cancelledAt).toLocaleString('ko-KR')} />
+                ) : null}
               </div>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -98,6 +115,14 @@ export function TripsPage() {
                 <Link className={buttonClassName({ variant: 'outline', className: 'flex-1' })} to="/">
                   다른 숙소 찾아보기
                 </Link>
+                <button
+                  className={buttonClassName({ variant: 'ghost', className: 'flex-1 text-rose-700 hover:bg-rose-50' })}
+                  disabled={isCancelled}
+                  type="button"
+                  onClick={handleBookingCancel}
+                >
+                  예약 취소
+                </button>
               </div>
             </div>
           </article>

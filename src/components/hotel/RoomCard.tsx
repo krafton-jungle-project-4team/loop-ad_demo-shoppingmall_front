@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import type { Hotel, Room } from '../../types/hotel';
 import type { SearchState } from '../../types/search';
 import { formatCurrency } from '../../utils/format';
-import { trackRoomSelect } from '../../utils/booking-events';
 import { calculatePrice } from '../../utils/pricing';
 import { createSearchParams } from '../../utils/searchParams';
 import { Badge } from '../common/Badge';
@@ -64,7 +63,7 @@ export function RoomCard({ hotel, room, searchState }: RoomCardProps) {
         <p className="text-sm font-semibold text-ink-500">1박</p>
         <p className="text-2xl font-bold text-ink-900">{formatCurrency(room.pricePerNight)}</p>
         <p className="mt-1 text-sm text-ink-500">총 {formatCurrency(price.total)}</p>
-        <Link className={buttonClassName({ className: 'mt-4 w-full' })} to={checkoutPath} onClick={() => trackRoomSelect(hotel, room, searchState)}>
+        <Link className={buttonClassName({ className: 'mt-4 w-full' })} to={checkoutPath}>
           예약하기
         </Link>
       </div>

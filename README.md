@@ -61,7 +61,21 @@ Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 
 5. 광고 API가 비어 있거나 실패할 때 지면이 클릭/문구/이벤트 없는 빈 회색 슬롯으로 남는지 확인합니다.
 6. 광고 노출/클릭과 예약 흐름 이벤트가 Event SDK를 통해 전송되는지 확인합니다.
 
-예약 흐름 이벤트는 최신 Event SDK 표준 이벤트명인 `hotel_search`, `hotel_detail_view`, `hotel_click`, `booking_start`, `booking_complete`를 사용합니다.
+필수 이벤트 11개는 아래 흐름에서 보냅니다.
+
+| 분류 | event_name | 데모 발생 지점 |
+| --- | --- | --- |
+| 공통 | `page_view` | 라우트 진입/변경 |
+| 프로모션 | `promotion_impression` | 실제 광고 decision이 노출될 때 |
+| 프로모션 | `promotion_click` | 실제 광고 decision 클릭 |
+| 프로모션 | `campaign_redirect_click` | `campaign_id`, `utm_campaign`, `redirect_id`, `deal` 등 캠페인 파라미터가 붙은 URL 첫 진입 |
+| 프로모션 | `campaign_landing` | 캠페인 파라미터가 붙은 랜딩 페이지 도착 |
+| 호텔 탐색 | `hotel_search` | 검색 폼 제출 |
+| 호텔 탐색 | `hotel_click` | 검색 결과 호텔 카드/목록 클릭 |
+| 호텔 탐색 | `hotel_detail_view` | 호텔 상세 페이지 조회 |
+| 예약 | `booking_start` | 체크아웃 페이지 진입 |
+| 예약 | `booking_complete` | 예약 완료 |
+| 예약 | `booking_cancel` | 내 예약 화면에서 예약 취소 |
 
 광고 SDK가 실제 광고 decision을 반환한 경우에만 `promotion_impression`, `promotion_click`을 보냅니다. 빈 지면 상태에서는 fallback tracking event를 보내지 않습니다.
 

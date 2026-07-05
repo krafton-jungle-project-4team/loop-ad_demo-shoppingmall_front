@@ -15,4 +15,6 @@ export type StoredBooking = {
   total: number;
   paymentOption: 'now' | 'later';
   cancellation: string;
+  status?: 'confirmed' | 'cancelled';
+  cancelledAt?: string;
 };

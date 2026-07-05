@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { adSlots, type AdSlotId } from "@/config/ad-slots";
@@ -38,6 +38,7 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
   const page = location.pathname;
   const isWingSlot = slotId === "W1_WING";
   const renderKey = `${page}:${slot.id}`;
+  const targetInstanceId = useId();
   const [renderSnapshot, setRenderSnapshot] = useState<AdRenderSnapshot>({
     key: renderKey,
     state: "loading",
@@ -45,8 +46,9 @@ export function AdSlot({ slotId, className }: AdSlotProps) {
   const renderState =
     renderSnapshot.key === renderKey ? renderSnapshot.state : "loading";
   const sdkTargetId = useMemo(
-    () => `loopad-${slot.id.toLowerCase().replace(/_/g, "-")}`,
-    [slot.id],
+    () =>
+      `loopad-${slot.id.toLowerCase().replace(/_/g, "-")}-${targetInstanceId.replace(/[^a-zA-Z0-9_-]/g, "")}`,
+    [slot.id, targetInstanceId],
   );
 
   const reportDecisionEvent = useCallback(

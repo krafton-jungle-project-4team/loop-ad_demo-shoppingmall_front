@@ -40,6 +40,7 @@ function createFallbackBooking(): StoredBooking {
     total: price.total,
     paymentOption: 'now',
     cancellation: hotel.policies.cancellation,
+    status: 'confirmed',
   };
 }
 
