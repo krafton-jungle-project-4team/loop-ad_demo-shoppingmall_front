@@ -1,254 +1,308 @@
-import { CreditCard, Home, PackageCheck, ShieldCheck } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { CreditCard, Mail, Phone, UserRound } from 'lucide-react';
+import { FormEvent, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Badge } from '../components/common/Badge';
+import { Button } from '../components/common/Button';
+import { buttonClassName } from '../components/common/buttonClassName';
+import { PriceSummary } from '../components/checkout/PriceSummary';
+import { Footer } from '../components/layout/Footer';
+import { Header } from '../components/layout/Header';
+import { PageContainer } from '../components/layout/PageContainer';
+import { hotels } from '../data/hotels';
+import type { StoredBooking } from '../types/booking';
+import { cn } from '../utils/cn';
+import { createBookingNumber, saveLastBooking } from '../utils/bookingStorage';
+import { trackBookingComplete, trackCheckoutStart } from '../utils/booking-events';
+import { formatDateRange } from '../utils/format';
+import { calculatePrice } from '../utils/pricing';
+import { parseSearchParams } from '../utils/searchParams';
 
-import { AppDialog } from "@/components/common/AppDialog";
-import { ProductImage } from "@/components/commerce/ProductImage";
-import { useCartStore } from "@/state/cart-context";
-import { useOrderStore } from "@/state/order-context";
-import { trackCheckoutStart, trackPurchase } from "@/utils/commerce-events";
-import { formatMoney } from "@/utils/money";
-import { buildCommerceLineItems, calculateOrderAmounts } from "@/utils/order-summary";
+type GuestForm = {
+  name: string;
+  email: string;
+  phone: string;
+  request: string;
+};
 
-const deliveryRows = [
-  { label: "받는 분", value: "데모 고객" },
-  { label: "연락처", value: "010-0000-0000" },
-  { label: "주소", value: "서울시 데모구 루프대로 100, 4층" },
-  { label: "배송 요청", value: "문 앞에 놓아주세요" },
-];
-
-const paymentMethods = ["목업 카드", "간편결제 데모", "가상 계좌"];
+type FormErrors = Partial<Record<keyof Pick<GuestForm, 'name' | 'email' | 'phone'>, string>>;
 
 export function CheckoutPage() {
+  const { hotelId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { items, itemCount } = useCartStore();
-  const { createOrder } = useOrderStore();
-  const [isConfirmOpen, setConfirmOpen] = useState(false);
-  const lineItems = useMemo(() => buildCommerceLineItems(items), [items]);
-  const orderItems = useMemo(() => lineItems.map(({ item }) => item), [lineItems]);
-  const { subtotal, shippingFee, totalAmount } = calculateOrderAmounts(orderItems);
+  const searchState = parseSearchParams(searchParams);
+  const hotel = hotels.find((item) => item.id === hotelId);
+  const roomId = searchParams.get('roomId') || 'standard-double';
+  const room = hotel?.rooms.find((item) => item.id === roomId) || hotel?.rooms[0];
+  const { adults, checkIn, checkOut, children, deal, destination, rooms } = searchState;
+  const [guestForm, setGuestForm] = useState<GuestForm>({ name: '', email: '', phone: '', request: '' });
+  const [paymentOption, setPaymentOption] = useState<'now' | 'later'>('now');
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
-    trackCheckoutStart(orderItems);
-  }, [orderItems]);
+    if (!hotel || !room) {
+      return;
+    }
 
-  if (lineItems.length === 0) {
-    return <Navigate to="/cart" replace />;
+    trackCheckoutStart(hotel, room, { adults, checkIn, checkOut, children, deal, destination, rooms });
+  }, [adults, checkIn, checkOut, children, deal, destination, hotel, room, rooms]);
+
+  if (!hotel || !room) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Header />
+        <PageContainer className="py-16 text-center">
+          <h1 className="text-2xl font-bold text-ink-900">예약할 숙소를 찾을 수 없어요</h1>
+          <Link className={buttonClassName({ className: 'mt-6' })} to="/">
+            홈으로 이동
+          </Link>
+        </PageContainer>
+      </div>
+    );
   }
 
-  function handleCreateMockOrder() {
-    const order = createOrder({
-      items: orderItems,
-      totalAmount,
-    });
+  const price = calculatePrice({
+    pricePerNight: room.pricePerNight,
+    originalPrice: room.originalPrice,
+    checkIn: searchState.checkIn,
+    checkOut: searchState.checkOut,
+    rooms: searchState.rooms,
+  });
 
-    trackPurchase(order);
-    setConfirmOpen(false);
-    navigate(`/order-complete?orderId=${order.id}`, {
-      state: {
-        clearCart: true,
-      },
-    });
-  }
+  const updateGuestForm = (key: keyof GuestForm, value: string) => {
+    setGuestForm((current) => ({ ...current, [key]: value }));
+    setErrors((current) => ({ ...current, [key]: undefined }));
+  };
+
+  const validateForm = (): FormErrors => {
+    const nextErrors: FormErrors = {};
+
+    if (!guestForm.name.trim()) nextErrors.name = '성명을 입력해주세요.';
+    if (!guestForm.email.trim()) nextErrors.email = '이메일을 입력해주세요.';
+    if (guestForm.email.trim() && !guestForm.email.includes('@')) nextErrors.email = '이메일 형식을 확인해주세요.';
+    if (!guestForm.phone.trim()) nextErrors.phone = '전화번호를 입력해주세요.';
+
+    return nextErrors;
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const nextErrors = validateForm();
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    const booking: StoredBooking = {
+      bookingNumber: createBookingNumber(),
+      hotelId: hotel.id,
+      hotelName: hotel.name,
+      roomId: room.id,
+      roomName: room.name,
+      guestName: guestForm.name,
+      email: guestForm.email,
+      phone: guestForm.phone,
+      checkIn: searchState.checkIn,
+      checkOut: searchState.checkOut,
+      adults: searchState.adults,
+      children: searchState.children,
+      rooms: searchState.rooms,
+      total: price.total,
+      paymentOption,
+      cancellation: hotel.policies.cancellation,
+    };
+
+    saveLastBooking(booking);
+    trackBookingComplete(booking);
+    navigate('/booking-complete');
+  };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-      <section className="flex flex-col gap-4">
-        <div className="rounded-md border border-border bg-card p-5 shadow-sm sm:p-6">
-          <p className="text-sm font-semibold text-muted-foreground">Checkout</p>
-          <h1 className="mt-3 text-3xl font-bold tracking-normal text-foreground">
-            목업 결제
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            배송지와 주문 상품을 확인한 뒤 시연용 주문을 생성합니다.
-          </p>
-        </div>
-
-        <section className="rounded-md border border-border bg-card p-5 shadow-sm sm:p-6">
-          <div className="flex items-start gap-3">
-            <div className="grid size-11 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
-              <Home aria-hidden="true" className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-muted-foreground">Delivery</p>
-              <h2 className="mt-1 text-xl font-bold tracking-normal text-foreground">
-                배송지
-              </h2>
-            </div>
+    <div className="min-h-screen bg-slate-50">
+      <Header />
+      <main>
+        <PageContainer className="py-6">
+          <div className="mb-6">
+            <p className="text-sm font-semibold text-loop-700">예약 정보 입력</p>
+            <h1 className="mt-1 text-3xl font-bold text-ink-900">예약 전 정보를 확인해주세요</h1>
           </div>
-          <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-            {deliveryRows.map((row) => (
-              <div key={row.label} className="rounded-md bg-muted px-3 py-2">
-                <dt className="font-semibold text-muted-foreground">{row.label}</dt>
-                <dd className="mt-1 font-medium text-foreground">{row.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
 
-        <section className="rounded-md border border-border bg-card p-5 shadow-sm sm:p-6">
-          <div className="flex items-start gap-3">
-            <div className="grid size-11 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
-              <PackageCheck aria-hidden="true" className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-muted-foreground">Items</p>
-              <h2 className="mt-1 text-xl font-bold tracking-normal text-foreground">
-                주문 상품 {itemCount}개
-              </h2>
-            </div>
-          </div>
-          <div className="mt-5 flex flex-col gap-3">
-            {lineItems.map(({ item, product, optionLabel, unitPrice, lineTotal }) => (
-              <article
-                key={`${item.productId}:${item.option ?? "default"}`}
-                className="grid gap-3 rounded-md border border-border bg-background p-4 sm:grid-cols-[4.5rem_minmax(0,1fr)_8rem]"
-              >
-                <ProductImage
-                  product={product}
-                  className="aspect-square"
-                  decorative
-                />
-                <div className="min-w-0">
-                  <Link
-                    to={`/products/${product.id}`}
-                    className="font-bold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    {product.name}
-                  </Link>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    옵션: {optionLabel} · 수량 {item.quantity}개
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-muted-foreground">
-                    {formatMoney(unitPrice)}
-                  </p>
+          <form className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]" onSubmit={handleSubmit} noValidate>
+            <div className="space-y-5">
+              <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 className="text-xl font-bold text-ink-900">예약자 정보</h2>
+                <div className="mt-5 grid gap-4">
+                  <TextField
+                    error={errors.name}
+                    icon={<UserRound size={17} aria-hidden="true" />}
+                    id="guest-name"
+                    label="성명"
+                    placeholder="홍길동"
+                    value={guestForm.name}
+                    onChange={(value) => updateGuestForm('name', value)}
+                  />
+                  <TextField
+                    error={errors.email}
+                    icon={<Mail size={17} aria-hidden="true" />}
+                    id="guest-email"
+                    label="이메일"
+                    placeholder="stayloop@example.com"
+                    type="email"
+                    value={guestForm.email}
+                    onChange={(value) => updateGuestForm('email', value)}
+                  />
+                  <TextField
+                    error={errors.phone}
+                    icon={<Phone size={17} aria-hidden="true" />}
+                    id="guest-phone"
+                    label="전화번호"
+                    placeholder="010-1234-5678"
+                    value={guestForm.phone}
+                    onChange={(value) => updateGuestForm('phone', value)}
+                  />
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-bold text-ink-900">요청사항</span>
+                    <textarea
+                      className="min-h-28 w-full rounded-md border border-slate-200 px-3 py-3 text-sm text-ink-900"
+                      placeholder="높은 층, 조용한 객실 등 요청사항을 입력하세요."
+                      value={guestForm.request}
+                      onChange={(event) => updateGuestForm('request', event.target.value)}
+                    />
+                  </label>
                 </div>
-                <p className="text-left text-lg font-bold text-foreground sm:text-right">
-                  {formatMoney(lineTotal)}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
+              </section>
 
-        <section className="rounded-md border border-border bg-card p-5 shadow-sm sm:p-6">
-          <div className="flex items-start gap-3">
-            <div className="grid size-11 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
-              <CreditCard aria-hidden="true" className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-muted-foreground">Payment</p>
-              <h2 className="mt-1 text-xl font-bold tracking-normal text-foreground">
-                결제수단 목업
-              </h2>
-            </div>
-          </div>
-          <div className="mt-5 grid gap-2 sm:grid-cols-3">
-            {paymentMethods.map((method, index) => (
-              <label
-                key={method}
-                className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background p-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/35"
-              >
-                <input
-                  type="radio"
-                  name="payment-method"
-                  className="size-4 accent-current"
-                  defaultChecked={index === 0}
-                />
-                {method}
-              </label>
-            ))}
-          </div>
-          <p className="mt-3 rounded-md bg-muted px-3 py-2 text-sm leading-6 text-muted-foreground">
-            실제 결제 SDK는 연결하지 않으며, 확인 시 로컬 주문 데이터만 생성됩니다.
-          </p>
-        </section>
-      </section>
+              <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 className="text-xl font-bold text-ink-900">예약 요약</h2>
+                <div className="mt-4 grid gap-4 md:grid-cols-[180px_1fr]">
+                  <img
+                    className="h-36 w-full rounded-lg object-cover"
+                    src={room.image}
+                    alt={`${room.name} 객실 사진`}
+                    onError={(event) => {
+                      event.currentTarget.style.display = 'none';
+                    }}
+                  />
+                  <div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge tone="green">무료 취소 가능</Badge>
+                      {hotel.payLater ? <Badge>숙소에서 결제 가능</Badge> : null}
+                    </div>
+                    <h3 className="mt-3 text-lg font-bold text-ink-900">{hotel.name}</h3>
+                    <p className="mt-1 text-sm text-ink-500">{room.name}</p>
+                    <dl className="mt-4 grid gap-2 text-sm text-ink-700 sm:grid-cols-2">
+                      <div>
+                        <dt className="font-bold text-ink-900">숙박 날짜</dt>
+                        <dd>{formatDateRange(searchState.checkIn, searchState.checkOut)}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-bold text-ink-900">여행자</dt>
+                        <dd>
+                          성인 {searchState.adults}명
+                          {searchState.children ? `, 아동 ${searchState.children}명` : ''} · 객실 {searchState.rooms}개
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </section>
 
-      <aside className="rounded-md border border-border bg-card p-5 shadow-sm sm:p-6 lg:sticky lg:top-36">
-        <div className="flex flex-col gap-5">
-          <div>
-            <p className="text-sm font-semibold text-muted-foreground">Summary</p>
-            <h2 className="mt-2 text-2xl font-bold tracking-normal text-foreground">
-              최종 결제 금액
-            </h2>
-          </div>
+              <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 className="text-xl font-bold text-ink-900">결제 옵션</h2>
+                <p className="mt-2 text-sm text-ink-500">예약 확정 전까지 원하는 결제 방식을 선택할 수 있습니다.</p>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <PaymentOption
+                    checked={paymentOption === 'now'}
+                    description="예약 확정과 동시에 결제하는 옵션"
+                    label="지금 결제"
+                    onClick={() => setPaymentOption('now')}
+                  />
+                  <PaymentOption
+                    checked={paymentOption === 'later'}
+                    description="숙소 도착 후 현장에서 결제"
+                    label="숙소에서 결제"
+                    onClick={() => setPaymentOption('later')}
+                  />
+                </div>
+              </section>
 
-          <dl className="flex flex-col gap-3 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <dt className="text-muted-foreground">상품 금액</dt>
-              <dd className="font-semibold text-foreground">{formatMoney(subtotal)}</dd>
+              <section className="rounded-lg border border-emerald-100 bg-emerald-50 p-5">
+                <h2 className="text-lg font-bold text-emerald-900">취소 정책</h2>
+                <p className="mt-2 text-sm leading-6 text-emerald-800">{hotel.policies.cancellation}</p>
+              </section>
             </div>
-            <div className="flex items-center justify-between gap-4">
-              <dt className="text-muted-foreground">쿠폰/할인</dt>
-              <dd className="font-semibold text-foreground">{formatMoney(0)}</dd>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <dt className="text-muted-foreground">배송비</dt>
-              <dd className="font-semibold text-foreground">
-                {shippingFee > 0 ? formatMoney(shippingFee) : "무료"}
-              </dd>
-            </div>
-            <div className="border-t border-border pt-3">
-              <div className="flex items-center justify-between gap-4">
-                <dt className="font-semibold text-foreground">결제 예정 금액</dt>
-                <dd className="text-xl font-bold text-foreground">
-                  {formatMoney(totalAmount)}
-                </dd>
-              </div>
-            </div>
-          </dl>
 
-          <button
-            type="button"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            onClick={() => setConfirmOpen(true)}
-          >
-            <ShieldCheck aria-hidden="true" className="size-4" />
-            목업 주문 생성
-          </button>
-
-          <Link
-            to="/cart"
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            장바구니로 돌아가기
-          </Link>
-        </div>
-      </aside>
-
-      <AppDialog
-        open={isConfirmOpen}
-        title="목업 주문을 생성할까요?"
-        description="실제 결제는 진행되지 않고, 로컬 주문 내역에만 저장됩니다."
-        onOpenChange={setConfirmOpen}
-        actions={
-          <>
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              onClick={() => setConfirmOpen(false)}
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              onClick={handleCreateMockOrder}
-              autoFocus
-            >
-              주문 완료 처리
-            </button>
-          </>
-        }
-      >
-        <dl className="rounded-md bg-muted p-3 text-sm">
-          <div className="flex items-center justify-between gap-4">
-            <dt className="text-muted-foreground">총 결제 예정 금액</dt>
-            <dd className="font-bold text-foreground">{formatMoney(totalAmount)}</dd>
-          </div>
-        </dl>
-      </AppDialog>
+            <div className="space-y-4">
+              <PriceSummary hotel={hotel} room={room} searchState={searchState} />
+              <Button className="w-full" size="lg" type="submit">
+                <CreditCard size={18} aria-hidden="true" />
+                예약 완료하기
+              </Button>
+              <p className="text-center text-xs text-ink-500">예약 확인 안내가 입력한 이메일로 발송될 예정입니다.</p>
+            </div>
+          </form>
+        </PageContainer>
+      </main>
+      <Footer />
     </div>
+  );
+}
+
+type TextFieldProps = {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  error?: string;
+  icon: ReactNode;
+  type?: string;
+};
+
+function TextField({ id, label, value, onChange, placeholder, error, icon, type = 'text' }: TextFieldProps) {
+  return (
+    <label className="block" htmlFor={id}>
+      <span className="mb-2 block text-sm font-bold text-ink-900">{label}</span>
+      <span className={cn('flex items-center gap-2 rounded-md border px-3', error ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-white')}>
+        <span className="text-ink-500">{icon}</span>
+        <input
+          className="h-12 min-w-0 flex-1 bg-transparent text-sm text-ink-900 outline-none"
+          id={id}
+          placeholder={placeholder}
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </span>
+      {error ? <span className="mt-1 block text-sm font-semibold text-rose-600">{error}</span> : null}
+    </label>
+  );
+}
+
+type PaymentOptionProps = {
+  checked: boolean;
+  label: string;
+  description: string;
+  onClick: () => void;
+};
+
+function PaymentOption({ checked, label, description, onClick }: PaymentOptionProps) {
+  return (
+    <button
+      className={cn(
+        'rounded-lg border p-4 text-left transition',
+        checked ? 'border-loop-500 bg-loop-50 ring-2 ring-loop-100' : 'border-slate-200 bg-white hover:border-loop-200',
+      )}
+      type="button"
+      onClick={onClick}
+    >
+      <span className="flex items-center gap-2 font-bold text-ink-900">
+        <span className={cn('h-4 w-4 rounded-full border', checked ? 'border-loop-600 bg-loop-600' : 'border-slate-300')} />
+        {label}
+      </span>
+      <span className="mt-2 block text-sm leading-6 text-ink-500">{description}</span>
+    </button>
   );
 }

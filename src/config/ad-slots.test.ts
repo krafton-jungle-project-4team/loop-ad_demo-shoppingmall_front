@@ -10,14 +10,14 @@ describe("ad slot configuration", () => {
     expect(slotIds.every((slotId) => adSlots[slotId].id === slotId)).toBe(true);
   });
 
-  it("routes C1 and W1 ads to their promotion landing pages", () => {
+  it("routes C1 and W1 ads to booking promotion landing pages", () => {
     expect(adSlots.C1_MAIN_TOP).toMatchObject({
-      linkTo: "/promotion/summer-sale",
+      linkTo: "/search?deal=summer",
       desktopImage: "/ads/main-desktop.webp",
       mobileImage: "/ads/main-mobile.webp",
     });
     expect(adSlots.W1_WING).toMatchObject({
-      linkTo: "/promotion/wing-special",
+      linkTo: "/search?deal=summer",
       desktopImage: "/ads/wing-desktop.webp",
     });
   });

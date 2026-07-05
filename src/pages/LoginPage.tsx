@@ -26,7 +26,7 @@ export function LoginPage() {
           사용자 타입 선택
         </h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          선택한 타입의 identity와 세그먼트 정보가 이후 Event SDK 이벤트에 반영됩니다.
+          선택한 여행자 identity와 세그먼트 정보가 이후 Event SDK 이벤트와 광고 요청 context에 반영됩니다.
         </p>
       </div>
 
@@ -94,10 +94,10 @@ export function LoginPage() {
             </p>
           </div>
           <Link
-            to="/products"
+            to="/search"
             className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            상품 둘러보기
+            숙소 둘러보기
           </Link>
         </div>
       ) : null}

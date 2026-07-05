@@ -1,44 +1,47 @@
-import { ReceiptText, Search, ShoppingCart, UserRound } from "lucide-react";
+import { CalendarCheck2, Search, UserRound } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
-import { SAMPLE_ORDER_PATH } from "@/config/demo-routes";
+import { destinations } from "@/data/destinations";
 import { useDemoUserProfile } from "@/hooks/useDemoUserProfile";
 import { cn } from "@/lib/utils";
-import { useCartStore } from "@/state/cart-context";
+import { createSearchParams, DEFAULT_SEARCH_STATE } from "@/utils/searchParams";
 
 const primaryNavigation = [
   { to: "/", label: "홈", end: true },
-  { to: "/products", label: "상품" },
-  { to: "/promotion/summer-sale", label: "기획전" },
-  { to: "/checkout", label: "결제" },
+  { to: "/search", label: "숙소 검색" },
+  { to: "/search?deal=summer", label: "프로모션" },
+  { to: "/trips", label: "내 예약" },
 ];
 
 const categoryNavigation = [
-  { to: "/products?category=fresh", label: "신선식품" },
-  { to: "/products?category=living", label: "생활용품" },
-  { to: "/products?category=digital", label: "디지털" },
-  { to: "/products?category=style", label: "스타일" },
-  { to: "/products?category=home", label: "홈데코" },
+  { to: "/search?destination=seoul", label: "서울" },
+  { to: "/search?destination=busan", label: "부산" },
+  { to: "/search?destination=jeju", label: "제주" },
+  { to: "/search?destination=gangneung", label: "강릉" },
+  { to: "/search?destination=yeosu", label: "여수" },
 ];
 
 export function SiteHeader() {
   const navigate = useNavigate();
-  const { itemCount } = useCartStore();
   const selectedProfile = useDemoUserProfile();
   const [keyword, setKeyword] = useState("");
-  const cartBadgeLabel = itemCount > 99 ? "99+" : String(itemCount);
 
   function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const trimmedKeyword = keyword.trim();
-    if (!trimmedKeyword) {
-      navigate("/products");
-      return;
-    }
+    const matchedDestination = trimmedKeyword
+      ? destinations.find((destination) =>
+          destination.name.toLowerCase().includes(trimmedKeyword.toLowerCase()),
+        )
+      : undefined;
+    const nextSearchState = {
+      ...DEFAULT_SEARCH_STATE,
+      destination: matchedDestination?.id ?? "",
+    };
 
-    navigate(`/products?keyword=${encodeURIComponent(trimmedKeyword)}`);
+    navigate(`/search?${createSearchParams(nextSearchState)}`);
   }
 
   return (
@@ -48,17 +51,17 @@ export function SiteHeader() {
           <Link
             to="/"
             className="flex shrink-0 items-center gap-2 rounded-md text-lg font-bold tracking-normal text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            aria-label="Loop Shop 홈"
+            aria-label="StayLoop 홈"
           >
             <span className="grid size-9 place-items-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-              LS
+              SL
             </span>
-            <span className="hidden sm:inline">Loop Shop</span>
+            <span className="hidden sm:inline">StayLoop</span>
           </Link>
 
           <form className="min-w-0 flex-1" role="search" onSubmit={handleSearchSubmit}>
             <label className="sr-only" htmlFor="site-search">
-              상품 검색
+              숙소 검색
             </label>
             <div className="flex h-11 items-center rounded-md border border-input bg-card px-3 shadow-sm focus-within:ring-2 focus-within:ring-ring">
               <Search aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
@@ -66,7 +69,7 @@ export function SiteHeader() {
                 id="site-search"
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
-                placeholder="상품 검색"
+                placeholder="지역 또는 숙소 검색"
                 className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
@@ -80,16 +83,11 @@ export function SiteHeader() {
 
           <div className="hidden items-center gap-2 lg:flex">
             <Link
-              to="/cart"
+              to="/trips"
               className="relative inline-flex size-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              aria-label={`장바구니 ${itemCount}개`}
+              aria-label="내 예약"
             >
-              <ShoppingCart aria-hidden="true" className="size-5" />
-              {itemCount > 0 ? (
-                <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground">
-                  {cartBadgeLabel}
-                </span>
-              ) : null}
+              <CalendarCheck2 aria-hidden="true" className="size-5" />
             </Link>
             <Link
               to="/login"
@@ -102,13 +100,6 @@ export function SiteHeader() {
               {selectedProfile ? (
                 <span className="absolute -right-1 -top-1 size-3 rounded-full bg-primary ring-2 ring-background" />
               ) : null}
-            </Link>
-            <Link
-              to={SAMPLE_ORDER_PATH}
-              className="inline-flex size-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              aria-label="주문 내역"
-            >
-              <ReceiptText aria-hidden="true" className="size-5" />
             </Link>
           </div>
         </div>

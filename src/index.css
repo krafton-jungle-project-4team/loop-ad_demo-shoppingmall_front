@@ -19,6 +19,19 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-loop-50: #eef7ff;
+  --color-loop-100: #d9edff;
+  --color-loop-200: #b9dcff;
+  --color-loop-500: #1668e3;
+  --color-loop-600: #0f55c8;
+  --color-loop-700: #0a429e;
+  --color-loop-900: #072b63;
+  --color-ink-500: #6b7280;
+  --color-ink-600: #4b5563;
+  --color-ink-700: #374151;
+  --color-ink-900: #111827;
+  --shadow-card: 0 10px 30px rgba(17, 24, 39, 0.08);
+  --shadow-lift: 0 16px 42px rgba(17, 24, 39, 0.12);
 }
 
 :root {
@@ -78,6 +91,12 @@ input {
 
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+.image-fallback {
+  background:
+    linear-gradient(135deg, rgba(22, 104, 227, 0.14), rgba(16, 185, 129, 0.12)),
+    #eef2f7;
 }
 
 .loopad-ad-slot {

@@ -1,0 +1,18 @@
+export type StoredBooking = {
+  bookingNumber: string;
+  hotelId: string;
+  hotelName: string;
+  roomId: string;
+  roomName: string;
+  guestName: string;
+  email: string;
+  phone: string;
+  checkIn: string;
+  checkOut: string;
+  adults: number;
+  children: number;
+  rooms: number;
+  total: number;
+  paymentOption: 'now' | 'later';
+  cancellation: string;
+};

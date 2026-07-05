@@ -146,7 +146,7 @@ describe("getDemoIdentity", () => {
     localStorage.setItem(PROFILE_STORAGE_KEY, "busan-male-30s");
     vi.stubGlobal("document", {
       referrer: "https://example.test/start",
-      title: "Loop Shop Demo",
+      title: "StayLoop Booking Demo",
     });
 
     const track = vi.fn();
@@ -165,11 +165,11 @@ describe("getDemoIdentity", () => {
       },
     });
 
-    trackLoopAdEvent("product_view", {
+    trackLoopAdEvent("hotel_view", {
       ageGroup: "10s",
       gender: "unknown",
       properties: {
-        page: "/products/fresh-salad-kit",
+        page: "/hotel/seoul-loop-city-001",
         region: "stale-region",
         age_group: "stale-age",
         gender: "stale-gender",
@@ -187,7 +187,7 @@ describe("getDemoIdentity", () => {
       gender: "male",
       user_type: "busan-male-30s",
       user_segment: "high_intent",
-      preferred_category: "digital",
+      preferred_category: "business_hotel",
     };
 
     expect(init).toHaveBeenCalledWith(
@@ -212,7 +212,7 @@ describe("getDemoIdentity", () => {
             path: "/login",
             previous_url: "https://demo-shoppingmall.dev.loop-ad.org/",
             referrer: "https://example.test/start",
-            title: "Loop Shop Demo",
+            title: "StayLoop Booking Demo",
             url: "https://demo-shoppingmall.dev.loop-ad.org/login",
           }),
           route_group: "/login",
@@ -231,12 +231,12 @@ describe("getDemoIdentity", () => {
       }),
     );
     expect(track).toHaveBeenCalledWith(
-      "product_view",
+      "hotel_view",
       expect.objectContaining({
         ageGroup: "30s",
         gender: "male",
         properties: expect.objectContaining({
-          page: "/products/fresh-salad-kit",
+          page: "/hotel/seoul-loop-city-001",
           ...expectedDemographicProperties,
         }),
       }),

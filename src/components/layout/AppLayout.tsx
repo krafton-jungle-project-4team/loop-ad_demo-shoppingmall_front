@@ -11,9 +11,9 @@ export function AppLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <PageViewTracker />
       <SiteHeader />
-      <main className="mx-auto min-h-[calc(100vh-16rem)] w-full max-w-7xl px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:pb-10">
+      <div className="min-h-[calc(100vh-16rem)] w-full pb-24 lg:pb-0">
         <Outlet />
-      </main>
+      </div>
       <SiteFooter />
       <MobileNavigation />
       <ScrollRestoration />

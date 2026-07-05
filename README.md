@@ -1,13 +1,13 @@
-# Loop Shop Demo Front
+# StayLoop Booking Demo Front
 
-Loop Shop Demo Front는 Loop Ad SDK를 실제 쇼핑몰 UI에 붙여 보는 React/Vite 데모입니다.
+StayLoop Booking Demo Front는 Loop Ad SDK를 숙소 예약 UI에 붙여 보는 React/Vite 데모입니다.
 
 이 README는 데모를 로컬에서 실행하고, 현재 화면에 붙은 SDK 연동이 정상인지 확인하는 how-to guide입니다. 조직의 전체 저장소 목록이나 오래된 실험 저장소 상태는 여기서 관리하지 않습니다.
 
 ## 이 레포의 범위
 
-- 데모 쇼핑몰 화면, 상품 fixture, 라우팅을 제공합니다.
-- 홈 화면의 `C1_MAIN_TOP`, `W1_WING` 광고 지면을 렌더링합니다.
+- 데모 숙소 예약 화면, 호텔 fixture, 검색/예약 라우팅을 제공합니다.
+- 홈 화면의 `C1_MAIN_TOP`, 검색 결과 화면의 `W1_WING` 광고 지면을 렌더링합니다.
 - Event SDK를 앱 시작 시 초기화합니다.
 - Advertisement SDK가 광고 지면을 채우도록 target DOM을 넘깁니다.
 - SDK 로드, 광고 요청, 광고 렌더링이 실패하면 로컬 fallback 광고 decision으로 대체합니다.
@@ -53,9 +53,11 @@ Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 
 1. 앱을 실행하고 `/` 화면을 엽니다.
 2. Network 탭에서 Event SDK와 Advertisement SDK script가 로드되는지 확인합니다.
 3. 홈 화면의 `C1_MAIN_TOP` 지면이 광고 SDK로 채워지는지 확인합니다.
-4. 1200px 이상 화면에서 `W1_WING` 지면이 보이고 광고 SDK로 채워지는지 확인합니다.
+4. `/search` 화면의 1200px 이상 레이아웃에서 `W1_WING` 지면이 보이고 광고 SDK로 채워지는지 확인합니다.
 5. 광고 API가 비어 있거나 실패할 때 로컬 fallback 광고가 남아 있는지 확인합니다.
-6. 광고 노출과 클릭 이벤트가 Event SDK를 통해 전송되는지 확인합니다.
+6. 광고 노출/클릭과 예약 흐름 이벤트가 Event SDK를 통해 전송되는지 확인합니다.
+
+예약 흐름 이벤트는 `search_submit`, `hotel_view`, `room_select`, `checkout_start`, `booking_complete`를 사용합니다.
 
 fallback 광고의 노출/클릭도 같은 이벤트 이름으로 추적하며, fallback용 tracking id와 `source: "advertisement_fallback"` 속성을 함께 보냅니다.
 
