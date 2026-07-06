@@ -79,6 +79,7 @@ export function getLoopAdAttributionFields(now = Date.now()): LoopAdTrackFields 
   return {
     ...attribution.fields,
     properties: {
+      ...(attribution.fields.properties ?? {}),
       attribution_source: attribution.source ?? "",
       attribution_placement_key: attribution.placementKey ?? "",
       attribution_page: attribution.page ?? "",
@@ -142,8 +143,11 @@ function pickAttributionFields(
     | "placementId"
     | "redirectId"
     | "targetUrl"
+    | "properties"
   >>,
 ): LoopAdTrackFields {
+  const properties = pickAttributionProperties(fields.properties);
+
   return {
     campaignId: text(fields.campaignId),
     promotionId: text(fields.promotionId),
@@ -156,6 +160,7 @@ function pickAttributionFields(
     placementId: text(fields.placementId),
     redirectId: text(fields.redirectId),
     targetUrl: text(fields.targetUrl),
+    properties: Object.keys(properties).length > 0 ? properties : undefined,
   };
 }
 
@@ -183,6 +188,26 @@ function getAttributionStorage(): Storage | null {
   } catch {
     return null;
   }
+}
+
+function pickAttributionProperties(
+  value: LoopAdTrackFields["properties"],
+): NonNullable<LoopAdTrackFields["properties"]> {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  const properties: NonNullable<LoopAdTrackFields["properties"]> = {};
+
+  for (const key of ["campaign_source", "campaign_medium", "campaign_name", "deal"]) {
+    const propertyValue = text(value[key]);
+
+    if (propertyValue) {
+      properties[key] = propertyValue;
+    }
+  }
+
+  return properties;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

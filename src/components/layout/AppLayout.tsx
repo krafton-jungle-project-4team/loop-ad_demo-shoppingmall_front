@@ -29,8 +29,8 @@ function PageViewTracker() {
   useEffect(() => {
     const previousUrl = previousUrlRef.current;
 
-    trackLoopAdPageView(previousUrl);
     trackCampaignRouteEvents(window.location.href, previousUrl);
+    trackLoopAdPageView(previousUrl);
     previousUrlRef.current = window.location.href;
   }, [location.hash, location.pathname, location.search]);
 

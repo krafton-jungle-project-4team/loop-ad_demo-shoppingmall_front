@@ -375,4 +375,74 @@ describe("getDemoIdentity", () => {
       }),
     );
   });
+
+  it("keeps redirect attribution when the landing page only has deal params", async () => {
+    const landingHref =
+      "https://demo-shoppingmall.dev.loop-ad.org/hotel/jeju-ocean-breeze-006" +
+      "?destination=&checkIn=2026-08-01&checkOut=2026-08-03" +
+      "&adults=1&children=0&rooms=1&deal=summer";
+    const redirectHref =
+      landingHref +
+      "&loopad_campaign_id=camp-expedia" +
+      "&loopad_promotion_id=promotion-real" +
+      "&loopad_promotion_run_id=run-real" +
+      "&loopad_ad_experiment_id=exp-real" +
+      "&loopad_promotion_channel=email" +
+      "&loopad_segment_id=segment-real" +
+      "&loopad_content_id=content-real" +
+      "&loopad_content_option_id=option-real" +
+      "&loopad_redirect_id=redirect-real";
+    const { localStorage } = stubBrowserStorage(
+      new MemoryStorage(),
+      new MemoryStorage(),
+      landingHref,
+    );
+    localStorage.setItem(PROFILE_STORAGE_KEY, "busan-male-30s");
+    vi.stubGlobal("document", {
+      referrer: "https://dashboard.api.dev.loop-ad.org/r/redirect-real",
+      title: "StayLoop Booking Demo",
+    });
+    const fetch = vi.fn((input: RequestInfo | URL, options?: RequestInit) => {
+      void input;
+      void options;
+      return Promise.resolve({ status: 202 } as Response);
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    trackCampaignRouteEvents(window.location.href, redirectHref);
+    trackLoopAdEvent("booking_complete", {
+      bookingId: "booking-1",
+      properties: {
+        booking_status: "completed",
+      },
+    });
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
+    const sentPayloads = fetch.mock.calls.map(([, options]) =>
+      JSON.parse(String((options as RequestInit).body)),
+    );
+    const bookingPayload = sentPayloads.find(
+      (payload) => payload.event_name === "booking_complete",
+    );
+    const bookingProperties = JSON.parse(bookingPayload.properties_json);
+
+    expect(bookingProperties).toEqual(
+      expect.objectContaining({
+        campaign_id: "camp-expedia",
+        promotion_id: "promotion-real",
+        promotion_run_id: "run-real",
+        ad_experiment_id: "exp-real",
+        promotion_channel: "email",
+        segment_id: "segment-real",
+        content_id: "content-real",
+        content_option_id: "option-real",
+        redirect_id: "redirect-real",
+        deal: "summer",
+      }),
+    );
+    expect(bookingProperties.campaign_id).not.toBe("summer");
+  });
 });
