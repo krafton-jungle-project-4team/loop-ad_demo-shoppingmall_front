@@ -3,6 +3,10 @@ import {
   type DemoUserProfile,
 } from "@/lib/demo-user";
 import { getLoopAdAttributionFields } from "@/utils/ad-attribution";
+import {
+  init as initLoopAdEventPackage,
+  version as loopAdEventPackageVersion,
+} from "@krafton-jungle-project-4team/loop-ad_event_sdk";
 
 type LoopAdPropertyValue =
   | string
@@ -147,8 +151,6 @@ declare global {
   }
 }
 
-const LOOP_AD_EVENT_SDK_URL =
-  "https://krafton-jungle-project-4team.github.io/loop-ad_event_sdk/loop-ad-event-sdk.iife.js";
 const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
 const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
@@ -167,7 +169,6 @@ let eventClientInstance: LoopAdEventClient | null = null;
 let advertisementClientPromise: Promise<AdvertisementClient | null> | null = null;
 
 export const loopAdSdkConfig = {
-  eventSdkUrl: LOOP_AD_EVENT_SDK_URL,
   advertisementSdkUrl: LOOP_AD_ADVERTISEMENT_SDK_URL,
   projectId: textEnv(import.meta.env.VITE_LOOP_AD_PROJECT_ID) ?? DEFAULT_PROJECT_ID,
   connectionUrl:
@@ -189,16 +190,12 @@ export function initLoopAdEventSdk(): Promise<LoopAdEventClient | null> {
   }
 
   if (!eventClientPromise) {
-    eventClientPromise = loadScript(
-      loopAdSdkConfig.eventSdkUrl,
-      () => window.LoopAdEventSDK,
-    )
+    eventClientPromise = Promise.resolve()
       .then(async () => {
-        const sdk = window.LoopAdEventSDK;
-
-        if (!sdk) {
-          throw new Error("LoopAdEventSDK global was not registered.");
-        }
+        const sdk: LoopAdEventSdkGlobal = window.LoopAdEventSDK ?? {
+          init: initLoopAdEventPackage,
+          version: loopAdEventPackageVersion,
+        };
 
         const currentIdentity = getDemoIdentity();
 
