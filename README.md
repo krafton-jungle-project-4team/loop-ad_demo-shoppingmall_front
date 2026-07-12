@@ -25,10 +25,11 @@ Vite 기본 주소는 `http://localhost:5173`입니다. 이미 사용 중인 포
 
 ## SDK 설정하기
 
-앱은 SDK npm 패키지를 설치하지 않고 GitHub Pages에 배포된 IIFE bundle을 동적으로 로드합니다. script 요청에는 cache-busting query를 붙여 새 배포가 브라우저 캐시에 묶이지 않게 합니다.
+Event SDK는 GitHub Packages의 정확한 버전
+`0.1.20260712-run.13.1`을 lockfile에 고정합니다. Advertisement SDK만 GitHub Pages
+IIFE bundle을 동적으로 로드합니다.
 
 ```text
-https://krafton-jungle-project-4team.github.io/loop-ad_event_sdk/loop-ad-event-sdk.iife.js
 https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js
 ```
 
@@ -36,14 +37,14 @@ https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad
 
 ```bash
 VITE_LOOP_AD_PROJECT_ID=demo_project
-VITE_LOOP_AD_WRITE_KEY=demo_project
+VITE_LOOP_AD_CONNECTION_URL=https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/demo_project
 VITE_LOOP_AD_PROMOTION_RUN_ID=demo_project
 VITE_LOOP_AD_AD_API_BASE_URL=https://dashboard.api.dev.loop-ad.org/api
 VITE_LOOP_AD_DEBUG=true
 ```
 
 - `VITE_LOOP_AD_PROJECT_ID`: 두 SDK가 공유하는 프로젝트 ID입니다.
-- `VITE_LOOP_AD_WRITE_KEY`: Event SDK가 Event Collector로 보내는 public write key입니다.
+- `VITE_LOOP_AD_CONNECTION_URL`: Dashboard가 게시한 SDK connection URL입니다. Event SDK는 이 응답의 project ID, public write key, Collector URL, Tracking Plan을 사용합니다.
 - `VITE_LOOP_AD_PROMOTION_RUN_ID`: Advertisement SDK가 banner resolve API에 넘기는 promotion run ID입니다.
 - `VITE_LOOP_AD_AD_API_BASE_URL`: Advertisement SDK가 광고 serve API를 호출할 때 쓰는 base URL입니다.
 - `VITE_LOOP_AD_DEBUG`: SDK 연동 로그를 확인할 때 `true`로 둡니다.
@@ -52,10 +53,17 @@ VITE_LOOP_AD_DEBUG=true
 
 Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 프론트에서는 Event Collector 주소를 직접 조립하지 않습니다.
 
+Tracking Plan 검증 smoke test는 로그인 후 URL에
+`?loopad_validate_tracking_plan=1`을 붙여 한 세션에 한 번 실행할 수 있습니다. 이 probe는
+정상 `page_view`, 미등록 이벤트, `hotel_detail_view`의 required 누락, 잘못된
+`hotel_id` 타입을 호출합니다. 게시된 plan에서 `hotel_detail_view.hotel_id`를 필수
+string으로 설정한 뒤 debug console과 Network 탭에서 invalid 이벤트가 전송되지 않는지
+확인합니다.
+
 ## 연동 확인하기
 
 1. 앱을 실행하고 `/` 화면을 엽니다.
-2. Network 탭에서 Event SDK와 Advertisement SDK script가 로드되는지 확인합니다.
+2. Network 탭에서 connection API와 Advertisement SDK script가 로드되는지 확인합니다.
 3. 홈 화면의 `C1_MAIN_TOP` 지면이 광고 SDK로 채워지는지 확인합니다.
 4. `/search` 화면의 1200px 이상 레이아웃에서 `W1_WING` 지면이 보이고 광고 SDK로 채워지는지 확인합니다.
 5. 광고 API가 비어 있거나 실패할 때 지면이 클릭/문구/이벤트 없는 빈 회색 슬롯으로 남는지 확인합니다.
