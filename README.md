@@ -36,14 +36,14 @@ https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad
 
 ```bash
 VITE_LOOP_AD_PROJECT_ID=demo_project
-VITE_LOOP_AD_WRITE_KEY=demo_project
+VITE_LOOP_AD_CONNECTION_URL=https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/demo_project
 VITE_LOOP_AD_PROMOTION_RUN_ID=demo_project
 VITE_LOOP_AD_AD_API_BASE_URL=https://dashboard.api.dev.loop-ad.org/api
 VITE_LOOP_AD_DEBUG=true
 ```
 
 - `VITE_LOOP_AD_PROJECT_ID`: 두 SDK가 공유하는 프로젝트 ID입니다.
-- `VITE_LOOP_AD_WRITE_KEY`: Event SDK가 Event Collector로 보내는 public write key입니다.
+- `VITE_LOOP_AD_CONNECTION_URL`: Dashboard가 게시한 SDK connection URL입니다. Event SDK는 이 응답의 project ID, public write key, Collector URL, Tracking Plan을 사용합니다.
 - `VITE_LOOP_AD_PROMOTION_RUN_ID`: Advertisement SDK가 banner resolve API에 넘기는 promotion run ID입니다.
 - `VITE_LOOP_AD_AD_API_BASE_URL`: Advertisement SDK가 광고 serve API를 호출할 때 쓰는 base URL입니다.
 - `VITE_LOOP_AD_DEBUG`: SDK 연동 로그를 확인할 때 `true`로 둡니다.
@@ -51,6 +51,13 @@ VITE_LOOP_AD_DEBUG=true
 로컬 Vite 개발 서버에서는 기본 API base URL로 `/api`를 사용하고, Vite proxy가 `https://dashboard.api.dev.loop-ad.org`로 전달합니다. 배포 빌드의 기본 API base URL은 `https://dashboard.api.dev.loop-ad.org/api`입니다.
 
 Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 프론트에서는 Event Collector 주소를 직접 조립하지 않습니다.
+
+Tracking Plan 검증 smoke test는 로그인 후 URL에
+`?loopad_validate_tracking_plan=1`을 붙여 한 세션에 한 번 실행할 수 있습니다. 이 probe는
+정상 `page_view`, 미등록 이벤트, `hotel_detail_view`의 required 누락, 잘못된
+`hotel_id` 타입을 호출합니다. 게시된 plan에서 `hotel_detail_view.hotel_id`를 필수
+string으로 설정한 뒤 debug console과 Network 탭에서 invalid 이벤트가 전송되지 않는지
+확인합니다.
 
 ## 연동 확인하기
 

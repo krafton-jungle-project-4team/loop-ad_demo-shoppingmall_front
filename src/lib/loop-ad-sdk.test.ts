@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  destroyLoopAdEventSdk,
   getDemoIdentity,
   trackLoopAdEvent,
   trackLoopAdPageView,
@@ -72,6 +73,7 @@ describe("getDemoIdentity", () => {
   });
 
   afterEach(() => {
+    destroyLoopAdEventSdk();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -161,7 +163,7 @@ describe("getDemoIdentity", () => {
 
     const track = vi.fn();
     const setIdentity = vi.fn();
-    const init = vi.fn(() => ({
+    const init = vi.fn(async () => ({
       track,
       setIdentity,
       clearIdentity: vi.fn(),
@@ -202,8 +204,8 @@ describe("getDemoIdentity", () => {
       expect.objectContaining({
         autoTrackPageViews: false,
         collectDomEvents: false,
-        projectId: "demo_project",
-        writeKey: "demo_project",
+        connectionUrl:
+          "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/demo_project",
         context: expect.objectContaining({
           promotionChannel: "onsite_banner",
           device: "desktop",
@@ -220,47 +222,13 @@ describe("getDemoIdentity", () => {
         device: "desktop",
       }),
     );
-    expect(track).not.toHaveBeenCalled();
-    expect(fetch).toHaveBeenCalledTimes(2);
-    expect(fetch).toHaveBeenCalledWith(
-      "https://event.api.dev.loop-ad.org",
-      expect.objectContaining({
-        body: expect.any(String),
-        credentials: "omit",
-        headers: { "Content-Type": "application/json" },
-        keepalive: true,
-        method: "POST",
-      }),
-    );
-
-    const sentPayloads = fetch.mock.calls.map(([, options]) =>
-      JSON.parse(String((options as RequestInit).body)),
-    );
-    const pageViewPayload = sentPayloads.find(
-      (payload) => payload.event_name === "page_view",
-    );
-    const hotelDetailPayload = sentPayloads.find(
-      (payload) => payload.event_name === "hotel_detail_view",
-    );
-    const pageViewProperties = JSON.parse(pageViewPayload.properties_json);
-    const hotelDetailProperties = JSON.parse(hotelDetailPayload.properties_json);
-
-    expect(pageViewPayload).toEqual(
-      expect.objectContaining({
-        project_id: "demo_project",
-        write_key: "demo_project",
-        schema_version: "hotel_rec_promo.v1",
-        event_id: expect.stringMatching(/^evt_/),
-        event_name: "page_view",
-        source: "browser_sdk",
-        user_id: "demo-user-busan-male-30s",
-        session_id: "demo-session-uuid-1",
-      }),
-    );
-    expect(pageViewProperties).toEqual(
+    expect(fetch).not.toHaveBeenCalled();
+    expect(track).toHaveBeenCalledTimes(2);
+    const pageViewFields = track.mock.calls.find(([name]) => name === "page_view")?.[1];
+    const hotelDetailFields = track.mock.calls.find(([name]) => name === "hotel_detail_view")?.[1];
+    expect(pageViewFields?.properties).toEqual(
       expect.objectContaining({
         ...expectedDemographicProperties,
-        promotion_channel: "onsite_banner",
         page: expect.objectContaining({
           path: "/login",
           previous_url: "https://demo-shoppingmall.dev.loop-ad.org/",
@@ -269,38 +237,17 @@ describe("getDemoIdentity", () => {
           url: "https://demo-shoppingmall.dev.loop-ad.org/login",
         }),
         route_group: "/login",
-        sdk: expect.objectContaining({
-          name: "loop-ad_event_sdk",
-          version: "test",
-        }),
       }),
     );
-    expect(hotelDetailPayload).toEqual(
-      expect.objectContaining({
-        event_name: "hotel_detail_view",
-        user_id: "demo-user-busan-male-30s",
-        session_id: "demo-session-uuid-1",
-      }),
-    );
-    expect(hotelDetailProperties).toEqual(
+    expect(hotelDetailFields?.properties).toEqual(
       expect.objectContaining({
         ...expectedDemographicProperties,
-        page: expect.objectContaining({
-          path: "/login",
-          referrer: "https://example.test/start",
-          title: "StayLoop Booking Demo",
-          url: "https://demo-shoppingmall.dev.loop-ad.org/login",
-        }),
-        page_path: "/login",
-        sdk: expect.objectContaining({
-          name: "loop-ad_event_sdk",
-          version: "test",
-        }),
+        page: "/hotel/seoul-loop-city-001",
       }),
     );
   });
 
-  it("carries loopad redirect attribution into direct booking events", async () => {
+  it("carries loopad redirect attribution into SDK booking events", async () => {
     const href =
       "https://demo-shoppingmall.dev.loop-ad.org/login" +
       "?loopad_campaign_id=campaign-real" +
@@ -322,12 +269,7 @@ describe("getDemoIdentity", () => {
       referrer: "https://dashboard.api.dev.loop-ad.org/r/redirect-real",
       title: "StayLoop Booking Demo",
     });
-    const fetch = vi.fn((input: RequestInfo | URL, options?: RequestInit) => {
-      void input;
-      void options;
-      return Promise.resolve({ status: 202 } as Response);
-    });
-    vi.stubGlobal("fetch", fetch);
+    const track = stubEventSdk();
 
     trackCampaignRouteEvents(window.location.href);
     trackLoopAdEvent("booking_complete", {
@@ -341,37 +283,28 @@ describe("getDemoIdentity", () => {
       setTimeout(resolve, 0);
     });
 
-    const sentPayloads = fetch.mock.calls.map(([, options]) =>
-      JSON.parse(String((options as RequestInit).body)),
-    );
-    const landingPayload = sentPayloads.find(
-      (payload) => payload.event_name === "campaign_landing",
-    );
-    const bookingPayload = sentPayloads.find(
-      (payload) => payload.event_name === "booking_complete",
-    );
-    const landingProperties = JSON.parse(landingPayload.properties_json);
-    const bookingProperties = JSON.parse(bookingPayload.properties_json);
+    const landingFields = track.mock.calls.find(([name]) => name === "campaign_landing")?.[1];
+    const bookingFields = track.mock.calls.find(([name]) => name === "booking_complete")?.[1];
 
-    for (const properties of [landingProperties, bookingProperties]) {
-      expect(properties).toEqual(
+    for (const fields of [landingFields, bookingFields]) {
+      expect(fields).toEqual(
         expect.objectContaining({
-          campaign_id: "campaign-real",
-          promotion_id: "promotion-real",
-          promotion_run_id: "run-real",
-          ad_experiment_id: "exp-real",
-          promotion_channel: "email",
-          segment_id: "segment-real",
-          content_id: "content-real",
-          content_option_id: "option-real",
-          redirect_id: "redirect-real",
+          campaignId: "campaign-real",
+          promotionId: "promotion-real",
+          promotionRunId: "run-real",
+          adExperimentId: "exp-real",
+          promotionChannel: "email",
+          segmentId: "segment-real",
+          contentId: "content-real",
+          contentOptionId: "option-real",
+          redirectId: "redirect-real",
         }),
       );
     }
-    expect(bookingProperties).toEqual(
+    expect(bookingFields).toEqual(
       expect.objectContaining({
-        booking_id: "booking-1",
-        booking_status: "completed",
+        bookingId: "booking-1",
+        properties: expect.objectContaining({ booking_status: "completed" }),
       }),
     );
   });
@@ -402,12 +335,7 @@ describe("getDemoIdentity", () => {
       referrer: "https://dashboard.api.dev.loop-ad.org/r/redirect-real",
       title: "StayLoop Booking Demo",
     });
-    const fetch = vi.fn((input: RequestInfo | URL, options?: RequestInit) => {
-      void input;
-      void options;
-      return Promise.resolve({ status: 202 } as Response);
-    });
-    vi.stubGlobal("fetch", fetch);
+    const track = stubEventSdk();
 
     trackCampaignRouteEvents(window.location.href, redirectHref);
     trackLoopAdEvent("booking_complete", {
@@ -421,28 +349,74 @@ describe("getDemoIdentity", () => {
       setTimeout(resolve, 0);
     });
 
-    const sentPayloads = fetch.mock.calls.map(([, options]) =>
-      JSON.parse(String((options as RequestInit).body)),
-    );
-    const bookingPayload = sentPayloads.find(
-      (payload) => payload.event_name === "booking_complete",
-    );
-    const bookingProperties = JSON.parse(bookingPayload.properties_json);
-
-    expect(bookingProperties).toEqual(
+    const bookingFields = track.mock.calls.find(([name]) => name === "booking_complete")?.[1];
+    expect(bookingFields).toEqual(
       expect.objectContaining({
-        campaign_id: "camp-expedia",
-        promotion_id: "promotion-real",
-        promotion_run_id: "run-real",
-        ad_experiment_id: "exp-real",
-        promotion_channel: "email",
-        segment_id: "segment-real",
-        content_id: "content-real",
-        content_option_id: "option-real",
-        redirect_id: "redirect-real",
-        deal: "summer",
+        campaignId: "camp-expedia",
+        promotionId: "promotion-real",
+        promotionRunId: "run-real",
+        adExperimentId: "exp-real",
+        promotionChannel: "email",
+        segmentId: "segment-real",
+        contentId: "content-real",
+        contentOptionId: "option-real",
+        redirectId: "redirect-real",
+        properties: expect.objectContaining({ deal: "summer" }),
       }),
     );
-    expect(bookingProperties.campaign_id).not.toBe("summer");
+    expect(bookingFields?.campaignId).not.toBe("summer");
+  });
+
+  it("runs normal, unregistered, required-missing, and type-error validation probes on demand", async () => {
+    const { localStorage } = stubBrowserStorage(
+      new MemoryStorage(),
+      new MemoryStorage(),
+      "https://demo-shoppingmall.dev.loop-ad.org/login?loopad_validate_tracking_plan=1",
+    );
+    localStorage.setItem(PROFILE_STORAGE_KEY, "busan-male-30s");
+    vi.stubGlobal("document", { referrer: "", title: "Validation probe" });
+    const track = stubEventSdk();
+
+    trackLoopAdEvent("page_view");
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+    const calls = track.mock.calls;
+    expect(calls.map(([eventName]) => eventName)).toEqual(
+      expect.arrayContaining([
+        "page_view",
+        "__loopad_unregistered_validation_probe",
+        "hotel_detail_view",
+      ]),
+    );
+    expect(
+      calls.some(
+        ([eventName, fields]) =>
+          eventName === "hotel_detail_view" &&
+          fields?.properties?.validation_probe === "required_missing",
+      ),
+    ).toBe(true);
+    expect(
+      calls.some(
+        ([eventName, fields]) =>
+          eventName === "hotel_detail_view" &&
+          fields?.properties?.hotel_id === 123,
+      ),
+    ).toBe(true);
   });
 });
+
+function stubEventSdk() {
+  const track = vi.fn();
+  Object.assign(window, {
+    LoopAdEventSDK: {
+      init: vi.fn(async () => ({
+        track,
+        setIdentity: vi.fn(),
+        clearIdentity: vi.fn(),
+        destroy: vi.fn(),
+      })),
+      version: "test",
+    },
+  });
+  return track;
+}
