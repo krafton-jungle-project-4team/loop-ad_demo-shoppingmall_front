@@ -90,7 +90,7 @@ export function trackAdEventWithSdk(
     device: fields.device ?? payload.viewport,
     properties: {
       slot_id: payload.slotId,
-      page: payload.page,
+      placement_page: payload.page,
       viewport: payload.viewport,
       source_event_time: payload.timestamp,
       ...(fields.properties ?? {}),

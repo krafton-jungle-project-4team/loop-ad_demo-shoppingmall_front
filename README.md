@@ -37,7 +37,7 @@ https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad
 
 ```bash
 VITE_LOOP_AD_PROJECT_ID=demo_project
-VITE_LOOP_AD_CONNECTION_URL=https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/demo_project
+VITE_LOOP_AD_CONNECTION_URL=https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57
 VITE_LOOP_AD_PROMOTION_RUN_ID=demo_project
 VITE_LOOP_AD_AD_API_BASE_URL=https://dashboard.api.dev.loop-ad.org/api
 VITE_LOOP_AD_DEBUG=true
@@ -89,15 +89,13 @@ string으로 설정한 뒤 debug console과 Network 탭에서 invalid 이벤트�
 
 ```ts
 sdk.track("promotion_impression", {
-  promotionChannel: "onsite_banner",
-  placementId: "C1_MAIN_TOP",
+  promotion_channel: "onsite_banner",
+  placement_id: "C1_MAIN_TOP",
   device: "desktop",
-  contentId: "loop-c1-summer-sale",
-  properties: {
-    slot_id: "C1_MAIN_TOP",
-    page: "/",
-    source: "advertisement_sdk"
-  }
+  content_id: "loop-c1-summer-sale",
+  slot_id: "C1_MAIN_TOP",
+  placement_page: "/",
+  source: "advertisement_sdk"
 });
 ```
 

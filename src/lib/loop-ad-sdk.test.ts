@@ -179,7 +179,7 @@ describe("getDemoIdentity", () => {
 
     trackLoopAdEvent("hotel_detail_view", {
       properties: {
-        page: "/hotel/seoul-loop-city-001",
+        source_page: "/hotel/seoul-loop-city-001",
         region: "stale-region",
         age_group: "stale-age",
         gender: "stale-gender",
@@ -203,11 +203,11 @@ describe("getDemoIdentity", () => {
     expect(init).toHaveBeenCalledWith(
       expect.objectContaining({
         autoTrackPageViews: false,
-        collectDomEvents: false,
+        collectDomEvents: true,
         connectionUrl:
-          "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/demo_project",
+          "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57",
         context: expect.objectContaining({
-          promotionChannel: "onsite_banner",
+          promotion_channel: "onsite_banner",
           device: "desktop",
         }),
       }),
@@ -218,31 +218,26 @@ describe("getDemoIdentity", () => {
         sessionId: "demo-session-uuid-1",
       },
       expect.objectContaining({
-        promotionChannel: "onsite_banner",
+        promotion_channel: "onsite_banner",
         device: "desktop",
       }),
     );
     expect(fetch).not.toHaveBeenCalled();
     expect(track).toHaveBeenCalledTimes(2);
-    const pageViewFields = track.mock.calls.find(([name]) => name === "page_view")?.[1];
-    const hotelDetailFields = track.mock.calls.find(([name]) => name === "hotel_detail_view")?.[1];
-    expect(pageViewFields?.properties).toEqual(
+    const pageViewProperties = track.mock.calls.find(([name]) => name === "page_view")?.[1];
+    const hotelDetailProperties = track.mock.calls.find(
+      ([name]) => name === "hotel_detail_view",
+    )?.[1];
+    expect(pageViewProperties).toEqual(
       expect.objectContaining({
         ...expectedDemographicProperties,
-        page: expect.objectContaining({
-          path: "/login",
-          previous_url: "https://demo-shoppingmall.dev.loop-ad.org/",
-          referrer: "https://example.test/start",
-          title: "StayLoop Booking Demo",
-          url: "https://demo-shoppingmall.dev.loop-ad.org/login",
-        }),
         route_group: "/login",
       }),
     );
-    expect(hotelDetailFields?.properties).toEqual(
+    expect(hotelDetailProperties).toEqual(
       expect.objectContaining({
         ...expectedDemographicProperties,
-        page: "/hotel/seoul-loop-city-001",
+        source_page: "/hotel/seoul-loop-city-001",
       }),
     );
   });
@@ -283,28 +278,32 @@ describe("getDemoIdentity", () => {
       setTimeout(resolve, 0);
     });
 
-    const landingFields = track.mock.calls.find(([name]) => name === "campaign_landing")?.[1];
-    const bookingFields = track.mock.calls.find(([name]) => name === "booking_complete")?.[1];
+    const landingProperties = track.mock.calls.find(
+      ([name]) => name === "campaign_landing",
+    )?.[1];
+    const bookingProperties = track.mock.calls.find(
+      ([name]) => name === "booking_complete",
+    )?.[1];
 
-    for (const fields of [landingFields, bookingFields]) {
-      expect(fields).toEqual(
+    for (const properties of [landingProperties, bookingProperties]) {
+      expect(properties).toEqual(
         expect.objectContaining({
-          campaignId: "campaign-real",
-          promotionId: "promotion-real",
-          promotionRunId: "run-real",
-          adExperimentId: "exp-real",
-          promotionChannel: "email",
-          segmentId: "segment-real",
-          contentId: "content-real",
-          contentOptionId: "option-real",
-          redirectId: "redirect-real",
+          campaign_id: "campaign-real",
+          promotion_id: "promotion-real",
+          promotion_run_id: "run-real",
+          ad_experiment_id: "exp-real",
+          promotion_channel: "email",
+          segment_id: "segment-real",
+          content_id: "content-real",
+          content_option_id: "option-real",
+          redirect_id: "redirect-real",
         }),
       );
     }
-    expect(bookingFields).toEqual(
+    expect(bookingProperties).toEqual(
       expect.objectContaining({
-        bookingId: "booking-1",
-        properties: expect.objectContaining({ booking_status: "completed" }),
+        booking_id: "booking-1",
+        booking_status: "completed",
       }),
     );
   });
@@ -349,22 +348,24 @@ describe("getDemoIdentity", () => {
       setTimeout(resolve, 0);
     });
 
-    const bookingFields = track.mock.calls.find(([name]) => name === "booking_complete")?.[1];
-    expect(bookingFields).toEqual(
+    const bookingProperties = track.mock.calls.find(
+      ([name]) => name === "booking_complete",
+    )?.[1];
+    expect(bookingProperties).toEqual(
       expect.objectContaining({
-        campaignId: "camp-expedia",
-        promotionId: "promotion-real",
-        promotionRunId: "run-real",
-        adExperimentId: "exp-real",
-        promotionChannel: "email",
-        segmentId: "segment-real",
-        contentId: "content-real",
-        contentOptionId: "option-real",
-        redirectId: "redirect-real",
-        properties: expect.objectContaining({ deal: "summer" }),
+        campaign_id: "camp-expedia",
+        promotion_id: "promotion-real",
+        promotion_run_id: "run-real",
+        ad_experiment_id: "exp-real",
+        promotion_channel: "email",
+        segment_id: "segment-real",
+        content_id: "content-real",
+        content_option_id: "option-real",
+        redirect_id: "redirect-real",
+        deal: "summer",
       }),
     );
-    expect(bookingFields?.campaignId).not.toBe("summer");
+    expect(bookingProperties?.campaign_id).not.toBe("summer");
   });
 
   it("runs normal, unregistered, required-missing, and type-error validation probes on demand", async () => {
@@ -385,21 +386,21 @@ describe("getDemoIdentity", () => {
       expect.arrayContaining([
         "page_view",
         "__loopad_unregistered_validation_probe",
-        "hotel_detail_view",
+        "schema_validation_probe",
       ]),
     );
     expect(
       calls.some(
-        ([eventName, fields]) =>
-          eventName === "hotel_detail_view" &&
-          fields?.properties?.validation_probe === "required_missing",
+        ([eventName, properties]) =>
+          eventName === "schema_validation_probe" &&
+          properties?.sample_id === "required_missing",
       ),
     ).toBe(true);
     expect(
       calls.some(
-        ([eventName, fields]) =>
-          eventName === "hotel_detail_view" &&
-          fields?.properties?.hotel_id === 123,
+        ([eventName, properties]) =>
+          eventName === "schema_validation_probe" &&
+          properties?.quantity === 1.5,
       ),
     ).toBe(true);
   });

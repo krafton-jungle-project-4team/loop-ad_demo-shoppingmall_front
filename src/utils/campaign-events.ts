@@ -166,7 +166,7 @@ function createCampaignRouteEvent(
         campaign_medium: medium ?? "",
         campaign_name: campaignName ?? "",
         deal: deal ?? "",
-        page_path: `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`,
+        landing_path: `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`,
         previous_url: previousUrl ?? "",
       },
     },
