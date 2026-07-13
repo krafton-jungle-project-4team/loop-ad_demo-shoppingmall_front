@@ -4,7 +4,6 @@ dist/
 coverage/
 playwright-report/
 test-results/
-brand-context-handoff-*/
 *.local
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,react,macos,windows,visualstudiocode,webstorm+all
