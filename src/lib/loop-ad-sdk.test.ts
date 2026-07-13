@@ -367,43 +367,6 @@ describe("getDemoIdentity", () => {
     );
     expect(bookingProperties?.campaign_id).not.toBe("summer");
   });
-
-  it("runs normal, unregistered, required-missing, and type-error validation probes on demand", async () => {
-    const { localStorage } = stubBrowserStorage(
-      new MemoryStorage(),
-      new MemoryStorage(),
-      "https://demo-shoppingmall.dev.loop-ad.org/login?loopad_validate_tracking_plan=1",
-    );
-    localStorage.setItem(PROFILE_STORAGE_KEY, "busan-male-30s");
-    vi.stubGlobal("document", { referrer: "", title: "Validation probe" });
-    const track = stubEventSdk();
-
-    trackLoopAdEvent("page_view");
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
-
-    const calls = track.mock.calls;
-    expect(calls.map(([eventName]) => eventName)).toEqual(
-      expect.arrayContaining([
-        "page_view",
-        "__loopad_unregistered_validation_probe",
-        "schema_validation_probe",
-      ]),
-    );
-    expect(
-      calls.some(
-        ([eventName, properties]) =>
-          eventName === "schema_validation_probe" &&
-          properties?.sample_id === "required_missing",
-      ),
-    ).toBe(true);
-    expect(
-      calls.some(
-        ([eventName, properties]) =>
-          eventName === "schema_validation_probe" &&
-          properties?.quantity === 1.5,
-      ),
-    ).toBe(true);
-  });
 });
 
 function stubEventSdk() {

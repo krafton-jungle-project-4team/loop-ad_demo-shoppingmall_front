@@ -10,7 +10,6 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run --passWithNoTests",
-    "tracking-plan:publish": "node scripts/publish-tracking-plan.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "dependencies": {

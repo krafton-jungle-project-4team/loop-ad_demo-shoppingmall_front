@@ -156,15 +156,13 @@ declare global {
 
 const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
+const LOOP_AD_EVENT_CONNECTION_URL =
+  "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57";
 const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const DEFAULT_PROJECT_ID = "demo_project";
-const DEFAULT_CONNECTION_URL =
-  "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57";
 const DEFAULT_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
 const DEV_AD_API_BASE_URL = "/api";
 const PROMOTION_CHANNEL = "onsite_banner";
-const VALIDATION_PROBE_QUERY = "loopad_validate_tracking_plan";
-const VALIDATION_PROBE_STORAGE_KEY = "loop-ad-tracking-plan-validation-probe.v2";
 
 const scriptLoaders = new Map<string, Promise<void>>();
 let eventClientPromise: Promise<LoopAdEventClient | null> | null = null;
@@ -174,8 +172,7 @@ let advertisementClientPromise: Promise<AdvertisementClient | null> | null = nul
 export const loopAdSdkConfig = {
   advertisementSdkUrl: LOOP_AD_ADVERTISEMENT_SDK_URL,
   projectId: textEnv(import.meta.env.VITE_LOOP_AD_PROJECT_ID) ?? DEFAULT_PROJECT_ID,
-  connectionUrl:
-    textEnv(import.meta.env.VITE_LOOP_AD_CONNECTION_URL) ?? DEFAULT_CONNECTION_URL,
+  connectionUrl: LOOP_AD_EVENT_CONNECTION_URL,
   promotionRunId: textEnv(import.meta.env.VITE_LOOP_AD_PROMOTION_RUN_ID) ?? "",
   advertisementApiBaseUrl:
     textEnv(import.meta.env.VITE_LOOP_AD_AD_API_BASE_URL) ??
@@ -217,7 +214,6 @@ export function initLoopAdEventSdk(): Promise<LoopAdEventClient | null> {
         });
 
         client.setIdentity(currentIdentity, createLoopAdSharedContext());
-        runTrackingPlanValidationProbe(client);
         eventClientInstance = client;
 
         return client;
@@ -237,77 +233,6 @@ export function destroyLoopAdEventSdk(): void {
   eventClientPromise = null;
   eventClientInstance = null;
   void clientPromise?.then((client) => client?.destroy()).catch(() => undefined);
-}
-
-function runTrackingPlanValidationProbe(client: LoopAdEventClient): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const enabled = new URL(window.location.href).searchParams.get(VALIDATION_PROBE_QUERY) === "1";
-  if (!enabled || window.sessionStorage.getItem(VALIDATION_PROBE_STORAGE_KEY) === "done") {
-    return;
-  }
-  window.sessionStorage.setItem(VALIDATION_PROBE_STORAGE_KEY, "done");
-
-  client.track("schema_validation_probe", validationProbeProperties());
-  client.track("__loopad_unregistered_validation_probe");
-  client.track("schema_validation_probe", { sample_id: "required_missing" });
-  client.track("schema_validation_probe", {
-    ...validationProbeProperties(),
-    quantity: 1.5,
-  });
-  client.track("schema_validation_probe", {
-    ...validationProbeProperties(),
-    unknown_property: true,
-  });
-  runDomTrackingPlanValidationProbe();
-}
-
-function runDomTrackingPlanValidationProbe(): void {
-  if (
-    typeof document === "undefined" ||
-    typeof document.createElement !== "function" ||
-    !document.body
-  ) {
-    return;
-  }
-
-  const valid = document.createElement("button");
-  valid.hidden = true;
-  valid.setAttribute("data-loopad-event", "schema_validation_probe");
-  valid.setAttribute(
-    "data-loopad-properties",
-    JSON.stringify(validationProbeProperties()),
-  );
-  document.body.appendChild(valid);
-  valid.click();
-  valid.remove();
-
-  const invalid = document.createElement("button");
-  invalid.hidden = true;
-  invalid.setAttribute("data-loopad-event", "schema_validation_probe");
-  invalid.setAttribute(
-    "data-loopad-properties",
-    JSON.stringify({ ...validationProbeProperties(), active: "true" }),
-  );
-  document.body.appendChild(invalid);
-  invalid.click();
-  invalid.remove();
-}
-
-function validationProbeProperties(): LoopAdEventProperties {
-  return {
-    sample_id: "browser-probe",
-    amount: 129000.5,
-    quantity: 2,
-    active: true,
-    tags: ["browser", "probe"],
-    item: {
-      sku: "probe-sku",
-      count: 2,
-    },
-  };
 }
 
 export function renderLoopAdPlacement(options: {
