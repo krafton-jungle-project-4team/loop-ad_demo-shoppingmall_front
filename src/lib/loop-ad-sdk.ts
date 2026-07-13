@@ -156,7 +156,7 @@ declare global {
 
 const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
-const LOOP_AD_EVENT_CONNECTION_URL =
+const DEFAULT_CONNECTION_URL =
   "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57";
 const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const DEFAULT_PROJECT_ID = "demo_project";
@@ -172,7 +172,8 @@ let advertisementClientPromise: Promise<AdvertisementClient | null> | null = nul
 export const loopAdSdkConfig = {
   advertisementSdkUrl: LOOP_AD_ADVERTISEMENT_SDK_URL,
   projectId: textEnv(import.meta.env.VITE_LOOP_AD_PROJECT_ID) ?? DEFAULT_PROJECT_ID,
-  connectionUrl: LOOP_AD_EVENT_CONNECTION_URL,
+  connectionUrl:
+    textEnv(import.meta.env.VITE_LOOP_AD_CONNECTION_URL) ?? DEFAULT_CONNECTION_URL,
   promotionRunId: textEnv(import.meta.env.VITE_LOOP_AD_PROMOTION_RUN_ID) ?? "",
   advertisementApiBaseUrl:
     textEnv(import.meta.env.VITE_LOOP_AD_AD_API_BASE_URL) ??

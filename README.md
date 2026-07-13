@@ -29,8 +29,8 @@ Event SDK는 GitHub Packages의 정확한 버전
 `0.1.20260712-run.13.1`을 lockfile에 고정합니다. Advertisement SDK만 GitHub Pages
 IIFE bundle을 동적으로 로드합니다.
 
-Event SDK Connection URL은 데모가 항상 같은 공개 프로젝트로 이벤트를 보내므로 코드에
-고정합니다.
+Event SDK Connection URL은 `VITE_LOOP_AD_CONNECTION_URL`을 사용합니다. 값이 없으면
+개발 데모용 공개 URL을 fallback으로 사용합니다.
 
 ```text
 https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57
@@ -46,12 +46,14 @@ https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad
 
 ```bash
 VITE_LOOP_AD_PROJECT_ID=demo_project
+VITE_LOOP_AD_CONNECTION_URL=https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57
 VITE_LOOP_AD_PROMOTION_RUN_ID=demo_project
 VITE_LOOP_AD_AD_API_BASE_URL=https://dashboard.api.dev.loop-ad.org/api
 VITE_LOOP_AD_DEBUG=true
 ```
 
 - `VITE_LOOP_AD_PROJECT_ID`: 두 SDK가 공유하는 프로젝트 ID입니다.
+- `VITE_LOOP_AD_CONNECTION_URL`: Dashboard가 게시한 Event SDK Connection URL입니다.
 - `VITE_LOOP_AD_PROMOTION_RUN_ID`: Advertisement SDK가 banner resolve API에 넘기는 promotion run ID입니다.
 - `VITE_LOOP_AD_AD_API_BASE_URL`: Advertisement SDK가 광고 serve API를 호출할 때 쓰는 base URL입니다.
 - `VITE_LOOP_AD_DEBUG`: SDK 연동 로그를 확인할 때 `true`로 둡니다.
