@@ -3,10 +3,6 @@ import {
   type DemoUserProfile,
 } from "@/lib/demo-user";
 import { getLoopAdAttributionFields } from "@/utils/ad-attribution";
-import {
-  init as initLoopAdEventPackage,
-  version as loopAdEventPackageVersion,
-} from "@krafton-jungle-project-4team/loop-ad_event_sdk";
 
 type LoopAdPropertyValue =
   | string
@@ -156,6 +152,8 @@ declare global {
 
 const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
+const LOOP_AD_EVENT_SDK_URL =
+  "https://krafton-jungle-project-4team.github.io/loop-ad_event_sdk/loop-ad-event-sdk.iife.js";
 const DEFAULT_CONNECTION_URL =
   "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57";
 const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
@@ -165,15 +163,17 @@ const DEV_AD_API_BASE_URL = "/api";
 const PROMOTION_CHANNEL = "onsite_banner";
 
 const scriptLoaders = new Map<string, Promise<void>>();
-let eventClientPromise: Promise<LoopAdEventClient | null> | null = null;
+let eventClientPromise: Promise<LoopAdEventClient> | null = null;
 let eventClientInstance: LoopAdEventClient | null = null;
 let advertisementClientPromise: Promise<AdvertisementClient | null> | null = null;
 
 export const loopAdSdkConfig = {
+  eventSdkUrl: LOOP_AD_EVENT_SDK_URL,
   advertisementSdkUrl: LOOP_AD_ADVERTISEMENT_SDK_URL,
   projectId: textEnv(import.meta.env.VITE_LOOP_AD_PROJECT_ID) ?? DEFAULT_PROJECT_ID,
-  connectionUrl:
+  connectionUrl: resolveEventConnectionUrl(
     textEnv(import.meta.env.VITE_LOOP_AD_CONNECTION_URL) ?? DEFAULT_CONNECTION_URL,
+  ),
   promotionRunId: textEnv(import.meta.env.VITE_LOOP_AD_PROMOTION_RUN_ID) ?? "",
   advertisementApiBaseUrl:
     textEnv(import.meta.env.VITE_LOOP_AD_AD_API_BASE_URL) ??
@@ -183,38 +183,44 @@ export const loopAdSdkConfig = {
     import.meta.env.DEV,
 };
 
-export function initLoopAdEventSdk(): Promise<LoopAdEventClient | null> {
-  const identity = getDemoIdentity();
-
-  if (!identity) {
-    return Promise.resolve(null);
+function resolveEventConnectionUrl(configuredUrl: string): string {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return configuredUrl;
   }
 
+  const connectionUrl = new URL(configuredUrl, window.location.origin);
+  if (connectionUrl.origin !== new URL(DEFAULT_CONNECTION_URL).origin) {
+    return connectionUrl.href;
+  }
+
+  return new URL(
+    `${connectionUrl.pathname}${connectionUrl.search}`,
+    window.location.origin,
+  ).href;
+}
+
+export function initLoopAdEventSdk(): Promise<LoopAdEventClient> {
   if (!eventClientPromise) {
-    eventClientPromise = Promise.resolve()
+    eventClientPromise = loadScript(
+      loopAdSdkConfig.eventSdkUrl,
+      () => window.LoopAdEventSDK,
+    )
       .then(async () => {
-        const sdk: LoopAdEventSdkGlobal = window.LoopAdEventSDK ?? {
-          init: initLoopAdEventPackage as unknown as LoopAdEventSdkGlobal["init"],
-          version: loopAdEventPackageVersion,
-        };
+        const sdk = window.LoopAdEventSDK;
 
-        const currentIdentity = getDemoIdentity();
-
-        if (!currentIdentity) {
-          eventClientPromise = null;
-          eventClientInstance = null;
-          return null;
+        if (!sdk) {
+          throw new Error("LoopAdEventSDK global was not registered.");
         }
 
         const client = await sdk.init({
           connectionUrl: loopAdSdkConfig.connectionUrl,
+          identity: getDemoIdentity(),
           debug: loopAdSdkConfig.debug,
           autoTrackPageViews: false,
           collectDomEvents: true,
           context: createLoopAdSharedContext(),
         });
 
-        client.setIdentity(currentIdentity, createLoopAdSharedContext());
         eventClientInstance = client;
 
         return client;
@@ -233,7 +239,7 @@ export function destroyLoopAdEventSdk(): void {
   const clientPromise = eventClientPromise;
   eventClientPromise = null;
   eventClientInstance = null;
-  void clientPromise?.then((client) => client?.destroy()).catch(() => undefined);
+  void clientPromise?.then((client) => client.destroy()).catch(() => undefined);
 }
 
 export function renderLoopAdPlacement(options: {
@@ -292,7 +298,7 @@ export function trackLoopAdEvent(eventName: string, fields?: LoopAdTrackFields):
 
   void initLoopAdEventSdk()
     .then((client) => {
-      if (client) trackWithGenericClient(client, eventName, trackFields);
+      trackWithGenericClient(client, eventName, trackFields);
     })
     .catch((error: unknown) => {
       if (loopAdSdkConfig.debug) {
@@ -314,7 +320,7 @@ export function setLoopAdDemoUserIdentity(): void {
     .then((client) => {
       const identity = getDemoIdentity();
 
-      if (!client || !identity) {
+      if (!identity) {
         return;
       }
 
@@ -390,12 +396,12 @@ function resetLoopAdAdvertisementSdk(): void {
 }
 
 function loadScript<T>(src: string, getGlobal: () => T | undefined): Promise<void> {
-  if (typeof document === "undefined") {
-    return Promise.reject(new Error("Loop Ad SDK scripts require a browser document."));
-  }
-
   if (getGlobal()) {
     return Promise.resolve();
+  }
+
+  if (typeof document === "undefined") {
+    return Promise.reject(new Error("Loop Ad SDK scripts require a browser document."));
   }
 
   const existingLoader = scriptLoaders.get(src);

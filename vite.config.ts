@@ -16,6 +16,9 @@ export default defineConfig({
         target: "https://dashboard.api.dev.loop-ad.org",
         changeOrigin: true,
         secure: true,
+        headers: {
+          Origin: "https://demo-shoppingmall.dev.loop-ad.org",
+        },
       },
     },
   },

@@ -6,7 +6,7 @@ import { initLoopAdEventSdk } from "@/lib/loop-ad-sdk";
 
 function App() {
   useEffect(() => {
-    void initLoopAdEventSdk();
+    void initLoopAdEventSdk().catch(() => undefined);
   }, []);
 
   return <RouterProvider router={router} />;

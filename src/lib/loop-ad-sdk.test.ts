@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   destroyLoopAdEventSdk,
   getDemoIdentity,
+  initLoopAdEventSdk,
   trackLoopAdEvent,
   trackLoopAdPageView,
 } from "@/lib/loop-ad-sdk";
@@ -87,6 +88,84 @@ describe("getDemoIdentity", () => {
     expect(firstIdentity).toBeNull();
     expect(secondIdentity).toBeNull();
     expect(localStorage.getItem("loop-ad-demo-user-id")).toBeNull();
+    expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it("loads the public Event SDK IIFE without npm registry authentication", async () => {
+    stubBrowserStorage();
+    const listeners = new Map<string, () => void>();
+    const script = {
+      addEventListener: vi.fn((name: string, listener: () => void) => {
+        listeners.set(name, listener);
+      }),
+      async: false,
+      crossOrigin: "",
+      dataset: {} as Record<string, string>,
+      remove: vi.fn(),
+      src: "",
+    };
+    const init = vi.fn(async () => ({
+      track: vi.fn(),
+      setIdentity: vi.fn(),
+      clearIdentity: vi.fn(),
+      destroy: vi.fn(),
+    }));
+    const appendChild = vi.fn(() => {
+      Object.assign(window, {
+        LoopAdEventSDK: {
+          init,
+          version: "test",
+        },
+      });
+      listeners.get("load")?.();
+    });
+
+    vi.stubGlobal("document", {
+      createElement: vi.fn(() => script),
+      head: { appendChild },
+      referrer: "",
+      title: "StayLoop Booking Demo",
+    });
+
+    await initLoopAdEventSdk();
+
+    expect(script.src).toMatch(
+      /^https:\/\/krafton-jungle-project-4team\.github\.io\/loop-ad_event_sdk\/loop-ad-event-sdk\.iife\.js\?loopad_sdk_t=\d+$/,
+    );
+    expect(script.async).toBe(true);
+    expect(script.crossOrigin).toBe("anonymous");
+    expect(script.dataset.loopAdSdk).toBe("true");
+    expect(appendChild).toHaveBeenCalledWith(script);
+    expect(init).toHaveBeenCalledWith(expect.objectContaining({ identity: null }));
+  });
+
+  it("starts the SDK before login so DevTools can inspect the connection", async () => {
+    stubBrowserStorage();
+    const destroy = vi.fn();
+    const init = vi.fn(async () => ({
+      track: vi.fn(),
+      setIdentity: vi.fn(),
+      clearIdentity: vi.fn(),
+      destroy,
+    }));
+
+    Object.assign(window, {
+      LoopAdEventSDK: {
+        init,
+        version: "test",
+      },
+    });
+
+    await initLoopAdEventSdk();
+
+    expect(init).toHaveBeenCalledWith(
+      expect.objectContaining({
+        identity: null,
+        debug: true,
+        autoTrackPageViews: false,
+        collectDomEvents: true,
+      }),
+    );
     expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
   });
 
@@ -206,22 +285,17 @@ describe("getDemoIdentity", () => {
         collectDomEvents: true,
         connectionUrl:
           "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57",
+        identity: {
+          userId: "demo-user-busan-male-30s",
+          sessionId: "demo-session-uuid-1",
+        },
         context: expect.objectContaining({
           promotion_channel: "onsite_banner",
           device: "desktop",
         }),
       }),
     );
-    expect(setIdentity).toHaveBeenCalledWith(
-      {
-        userId: "demo-user-busan-male-30s",
-        sessionId: "demo-session-uuid-1",
-      },
-      expect.objectContaining({
-        promotion_channel: "onsite_banner",
-        device: "desktop",
-      }),
-    );
+    expect(setIdentity).not.toHaveBeenCalled();
     expect(fetch).not.toHaveBeenCalled();
     expect(track).toHaveBeenCalledTimes(2);
     const pageViewProperties = track.mock.calls.find(([name]) => name === "page_view")?.[1];
