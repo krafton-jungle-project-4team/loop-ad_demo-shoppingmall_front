@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-10T06:24:00.438Z",
-  "source": "Mixed (Unsplash, Wikimedia Commons)",
+  "generatedAt": "2026-07-13T00:00:00.000Z",
+  "source": "Mixed (OpenAI image generation, Unsplash, Wikimedia Commons)",
   "licenseUrl": "See per-asset license fields",
   "assets": [
     {
@@ -16,12 +16,15 @@
     {
       "id": "destination-seoul",
       "localPath": "/stayloop/destinations/seoul.jpg",
-      "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Seoul_%28175734251%29_%28cropped%29.jpg/960px-Seoul_%28175734251%29_%28cropped%29.jpg",
-      "replacedSourceUrl": "https://images.unsplash.com/photo-1538485399081-7c8edcb5896d?auto=format&fit=crop&w=900&q=80",
-      "source": "Wikimedia Commons",
-      "license": "See source file license on Wikimedia Commons",
-      "bytes": 166458,
-      "downloadedAt": "2026-07-10T06:23:56.223Z"
+      "sourceUrl": "urn:openai:imagegen:stayloop:destination-seoul:v1",
+      "source": "OpenAI image generation",
+      "sourceType": "ai_generated",
+      "aiGenerated": true,
+      "license": "OpenAI Terms of Use — output ownership provision",
+      "licenseUrl": "https://openai.com/policies/terms-of-use/",
+      "bytes": 117118,
+      "sha256": "5a4a30179df319980616ccba0ecafeb51cc68ff42c87270fd861556f1a4bcc1e",
+      "generatedAt": "2026-07-13T00:00:00.000Z"
     },
     {
       "id": "destination-jeju",
@@ -36,11 +39,15 @@
     {
       "id": "destination-busan",
       "localPath": "/stayloop/destinations/busan.jpg",
-      "sourceUrl": "https://images.unsplash.com/photo-1542856391-010fb87dcfed?auto=format&fit=crop&w=900&q=80",
-      "bytes": 105370,
-      "downloadedAt": "2026-07-10T06:23:56.364Z",
-      "source": "Unsplash",
-      "license": "Unsplash License"
+      "sourceUrl": "urn:openai:imagegen:stayloop:destination-busan:v1",
+      "source": "OpenAI image generation",
+      "sourceType": "ai_generated",
+      "aiGenerated": true,
+      "license": "OpenAI Terms of Use — output ownership provision",
+      "licenseUrl": "https://openai.com/policies/terms-of-use/",
+      "bytes": 144461,
+      "sha256": "65b8175e7f5fdb262aa3dccebccc26495218547be5380ea9ab334996dcd45986",
+      "generatedAt": "2026-07-13T00:00:00.000Z"
     },
     {
       "id": "destination-gangneung",
@@ -54,20 +61,28 @@
     {
       "id": "destination-gyeongju",
       "localPath": "/stayloop/destinations/gyeongju.jpg",
-      "sourceUrl": "https://images.unsplash.com/photo-1612278675615-7b093b07772d?auto=format&fit=crop&w=900&q=80",
-      "bytes": 135999,
-      "downloadedAt": "2026-07-10T06:23:56.469Z",
-      "source": "Unsplash",
-      "license": "Unsplash License"
+      "sourceUrl": "urn:openai:imagegen:stayloop:destination-gyeongju:v1",
+      "source": "OpenAI image generation",
+      "sourceType": "ai_generated",
+      "aiGenerated": true,
+      "license": "OpenAI Terms of Use — output ownership provision",
+      "licenseUrl": "https://openai.com/policies/terms-of-use/",
+      "bytes": 123526,
+      "sha256": "f8e430d58af2f547a5044d29c5d860b1a29b37daef0660397fcbe24ef7047747",
+      "generatedAt": "2026-07-13T00:00:00.000Z"
     },
     {
       "id": "destination-yeosu",
       "localPath": "/stayloop/destinations/yeosu.jpg",
-      "sourceUrl": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
-      "bytes": 223159,
-      "downloadedAt": "2026-07-10T06:23:56.491Z",
-      "source": "Unsplash",
-      "license": "Unsplash License"
+      "sourceUrl": "urn:openai:imagegen:stayloop:destination-yeosu:v1",
+      "source": "OpenAI image generation",
+      "sourceType": "ai_generated",
+      "aiGenerated": true,
+      "license": "OpenAI Terms of Use — output ownership provision",
+      "licenseUrl": "https://openai.com/policies/terms-of-use/",
+      "bytes": 135864,
+      "sha256": "ac07a6222ad7c106c9bebffc4acd8f1f2eda1c94a76d4e42869cc40f3380f7b7",
+      "generatedAt": "2026-07-13T00:00:00.000Z"
     },
     {
       "id": "destination-tokyo",
