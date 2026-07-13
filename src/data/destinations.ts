@@ -7,8 +7,7 @@ export const destinations: Destination[] = [
     country: '대한민국',
     description: '도심 호캉스와 비즈니스 호텔의 중심',
     hotelCountLabel: '숙소 248개',
-    image:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Seoul_%28175734251%29_%28cropped%29.jpg/960px-Seoul_%28175734251%29_%28cropped%29.jpg',
+    image: '/stayloop/destinations/seoul.jpg',
     popularAreas: ['명동', '강남', '홍대', '잠실'],
   },
   {
@@ -17,8 +16,7 @@ export const destinations: Destination[] = [
     country: '대한민국',
     description: '오션뷰 리조트와 감성 숙소',
     hotelCountLabel: '숙소 186개',
-    image:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Seongsan_Ilchulbong_from_the_air.jpg/960px-Seongsan_Ilchulbong_from_the_air.jpg',
+    image: '/stayloop/destinations/jeju.jpg',
     popularAreas: ['서귀포', '애월', '중문', '성산'],
   },
   {
@@ -27,7 +25,7 @@ export const destinations: Destination[] = [
     country: '대한민국',
     description: '해운대와 광안리 근처 인기 호텔',
     hotelCountLabel: '숙소 173개',
-    image: 'https://images.unsplash.com/photo-1542856391-010fb87dcfed?auto=format&fit=crop&w=900&q=80',
+    image: '/stayloop/destinations/busan.jpg',
     popularAreas: ['해운대', '광안리', '서면', '영도'],
   },
   {
@@ -36,7 +34,7 @@ export const destinations: Destination[] = [
     country: '대한민국',
     description: '바다 앞 주말 여행 숙소',
     hotelCountLabel: '숙소 92개',
-    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80',
+    image: '/stayloop/destinations/gangneung.jpg',
     popularAreas: ['경포', '안목', '주문진', '정동진'],
   },
   {
@@ -45,7 +43,7 @@ export const destinations: Destination[] = [
     country: '대한민국',
     description: '역사 여행과 한옥 스테이',
     hotelCountLabel: '숙소 88개',
-    image: 'https://images.unsplash.com/photo-1612278675615-7b093b07772d?auto=format&fit=crop&w=900&q=80',
+    image: '/stayloop/destinations/gyeongju.jpg',
     popularAreas: ['황리단길', '보문', '불국사', '시내'],
   },
   {
@@ -54,7 +52,7 @@ export const destinations: Destination[] = [
     country: '대한민국',
     description: '낭만적인 야경과 바다 전망',
     hotelCountLabel: '숙소 71개',
-    image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
+    image: '/stayloop/destinations/yeosu.jpg',
     popularAreas: ['돌산', '종포', '엑스포', '웅천'],
   },
   {
@@ -63,7 +61,7 @@ export const destinations: Destination[] = [
     country: '일본',
     description: '도심 접근성 좋은 세련된 호텔',
     hotelCountLabel: '숙소 322개',
-    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=900&q=80',
+    image: '/stayloop/destinations/tokyo.jpg',
     popularAreas: ['신주쿠', '긴자', '시부야', '우에노'],
   },
   {
@@ -72,7 +70,7 @@ export const destinations: Destination[] = [
     country: '일본',
     description: '난바와 도톤보리 중심 숙소',
     hotelCountLabel: '숙소 214개',
-    image: 'https://images.unsplash.com/photo-1590559899731-a382839e5549?auto=format&fit=crop&w=900&q=80',
+    image: '/stayloop/destinations/osaka.jpg',
     popularAreas: ['난바', '우메다', '신사이바시', '덴노지'],
   },
   {
@@ -81,7 +79,7 @@ export const destinations: Destination[] = [
     country: '태국',
     description: '루프톱 수영장과 리버뷰 호텔',
     hotelCountLabel: '숙소 291개',
-    image: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=900&q=80',
+    image: '/stayloop/destinations/bangkok.jpg',
     popularAreas: ['시암', '수쿰윗', '사톤', '리버사이드'],
   },
 ];

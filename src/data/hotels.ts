@@ -1,39 +1,49 @@
 import type { Hotel, HotelBadge, PropertyType, Review, ReviewBreakdown, Room } from '../types/hotel';
 
 const HOTEL_IMAGES = [
-  'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1602002418082-a4443e081dd1?auto=format&fit=crop&w=1200&q=80',
-];
-
-const SEOUL_IMAGES = [
-  'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80',
-  'https://negativespace.co/wp-content/uploads/2021/07/negative-space-bed-desk-glass-window-944x708.jpg',
-  'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1200&q=80',
-];
-
-const JEJU_IMAGES = [
-  'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1602002418082-a4443e081dd1?auto=format&fit=crop&w=1200&q=80',
+  '/stayloop/hotels/hotel-01.jpg',
+  '/stayloop/hotels/hotel-02.jpg',
+  '/stayloop/hotels/hotel-03.jpg',
+  '/stayloop/hotels/hotel-04.jpg',
+  '/stayloop/hotels/hotel-05.jpg',
+  '/stayloop/hotels/hotel-06.jpg',
+  '/stayloop/hotels/hotel-07.jpg',
+  '/stayloop/hotels/hotel-08.jpg',
+  '/stayloop/hotels/hotel-09.jpg',
+  '/stayloop/hotels/hotel-10.jpg',
+  '/stayloop/hotels/hotel-11.jpg',
+  '/stayloop/hotels/hotel-12.jpg',
+  '/stayloop/hotels/hotel-13.jpg',
+  '/stayloop/hotels/hotel-14.jpg',
+  '/stayloop/hotels/hotel-15.jpg',
+  '/stayloop/hotels/hotel-16.jpg',
+  '/stayloop/hotels/hotel-17.jpg',
+  '/stayloop/hotels/hotel-18.jpg',
+  '/stayloop/hotels/hotel-19.jpg',
+  '/stayloop/hotels/hotel-20.jpg',
 ];
 
 const ROOM_IMAGES = [
-  'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=900&q=80',
+  '/stayloop/rooms/room-01.jpg',
+  '/stayloop/rooms/room-02.jpg',
+  '/stayloop/rooms/room-03.jpg',
+  '/stayloop/rooms/room-04.jpg',
+  '/stayloop/rooms/room-05.jpg',
+  '/stayloop/rooms/room-06.jpg',
+  '/stayloop/rooms/room-07.jpg',
+  '/stayloop/rooms/room-08.jpg',
+  '/stayloop/rooms/room-09.jpg',
+  '/stayloop/rooms/room-10.jpg',
+  '/stayloop/rooms/room-11.jpg',
+  '/stayloop/rooms/room-12.jpg',
+  '/stayloop/rooms/room-13.jpg',
+  '/stayloop/rooms/room-14.jpg',
+  '/stayloop/rooms/room-15.jpg',
+  '/stayloop/rooms/room-16.jpg',
+  '/stayloop/rooms/room-17.jpg',
+  '/stayloop/rooms/room-18.jpg',
+  '/stayloop/rooms/room-19.jpg',
+  '/stayloop/rooms/room-20.jpg',
 ];
 
 const REVIEW_AUTHORS = ['김민서', '박준호', '이서연', '최유진', '정도윤', '한지아'];
@@ -47,13 +57,15 @@ function makeBreakdown(rating: number): ReviewBreakdown {
   };
 }
 
-function makeRooms(hotelId: string, basePrice: number, refundable: boolean): Room[] {
+function makeRooms(hotelId: string, basePrice: number, refundable: boolean, imageStart: number): Room[] {
+  const roomPairOffset = ROOM_IMAGES.length / 2;
+
   return [
     {
       id: 'standard-double',
       hotelId,
       name: 'Standard Double Room',
-      image: ROOM_IMAGES[0],
+      image: ROOM_IMAGES[imageStart % ROOM_IMAGES.length],
       bedType: '더블 침대 1개',
       capacity: 2,
       size: '24m²',
@@ -67,7 +79,7 @@ function makeRooms(hotelId: string, basePrice: number, refundable: boolean): Roo
       id: 'deluxe-king',
       hotelId,
       name: 'Deluxe King Room',
-      image: ROOM_IMAGES[1],
+      image: ROOM_IMAGES[(imageStart + roomPairOffset) % ROOM_IMAGES.length],
       bedType: '킹 침대 1개',
       capacity: 3,
       size: '32m²',
@@ -383,7 +395,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '바다 전망', '주차 가능', '레스토랑'],
     propertyType: 'hotel',
     images: [],
-    imageStart: 0,
+    imageStart: 10,
     distanceText: '광안리해변에서 도보 2분',
     badge: '회원가',
     description: '광안대교 야경을 가까이 즐길 수 있는 바다 앞 호텔입니다.',
@@ -406,7 +418,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '조식 가능', '금연 객실'],
     propertyType: 'hotel',
     images: [],
-    imageStart: 1,
+    imageStart: 11,
     distanceText: '서면역에서 도보 5분',
     badge: '오늘의 특가',
     description: '부산 도심 이동이 편한 실속형 호텔로 짧은 일정에 잘 맞습니다.',
@@ -430,7 +442,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '주차 가능', '바다 전망', '조식 가능'],
     propertyType: 'hotel',
     images: [],
-    imageStart: 2,
+    imageStart: 12,
     distanceText: '경포해변에서 도보 6분',
     badge: '무료 취소',
     description: '소나무 숲과 바다 사이에 자리한 강릉 대표 휴식형 호텔입니다.',
@@ -453,7 +465,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '주차 가능', '반려동물 동반 가능'],
     propertyType: 'guesthouse',
     images: [],
-    imageStart: 3,
+    imageStart: 13,
     distanceText: '안목 커피거리에서 도보 3분',
     badge: '회원가',
     description: '커피거리와 가까운 캐주얼 스테이로 주말 여행에 알맞습니다.',
@@ -477,7 +489,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '조식 가능', '주차 가능', '금연 객실'],
     propertyType: 'guesthouse',
     images: [],
-    imageStart: 4,
+    imageStart: 14,
     distanceText: '황리단길에서 도보 4분',
     badge: '인기 숙소',
     description: '한옥의 정취와 현대적인 객실 편의를 함께 갖춘 경주 감성 숙소입니다.',
@@ -501,7 +513,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '수영장', '바다 전망', '주차 가능', '레스토랑'],
     propertyType: 'resort',
     images: [],
-    imageStart: 5,
+    imageStart: 15,
     distanceText: '돌산대교에서 차량 7분',
     badge: '오늘의 특가',
     description: '여수 밤바다를 바라보며 머무는 리조트형 숙소입니다.',
@@ -525,7 +537,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '조식 가능', '피트니스 센터', '레스토랑'],
     propertyType: 'hotel',
     images: [],
-    imageStart: 6,
+    imageStart: 16,
     distanceText: '신주쿠역에서 도보 9분',
     badge: '회원가',
     description: '도쿄 주요 노선 접근성이 좋은 세련된 도심 호텔입니다.',
@@ -549,7 +561,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '조식 가능', '피트니스 센터', '레스토랑', '스파'],
     propertyType: 'hotel',
     images: [],
-    imageStart: 7,
+    imageStart: 17,
     distanceText: '긴자역에서 도보 5분',
     badge: '인기 숙소',
     description: '쇼핑과 미식을 즐기기 좋은 긴자 중심의 프리미엄 호텔입니다.',
@@ -573,7 +585,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '조식 가능', '주차 가능', '금연 객실'],
     propertyType: 'hotel',
     images: [],
-    imageStart: 8,
+    imageStart: 18,
     distanceText: '난바역에서 도보 4분',
     badge: '무료 취소',
     description: '도톤보리와 난바 이동이 편한 오사카 도심 호텔입니다.',
@@ -597,7 +609,7 @@ const seeds: HotelSeed[] = [
     amenities: ['무료 Wi-Fi', '조식 가능', '수영장', '스파', '레스토랑', '바다 전망'],
     propertyType: 'resort',
     images: [],
-    imageStart: 9,
+    imageStart: 19,
     distanceText: '짜오프라야 강변',
     badge: '오늘의 특가',
     description: '루프톱 수영장과 리버뷰 레스토랑을 갖춘 방콕 휴양형 숙소입니다.',
@@ -611,14 +623,6 @@ function rotateImages(images: string[], start: number, length: number): string[]
 }
 
 function getHotelImages(seed: HotelSeed): string[] {
-  if (seed.destinationId === 'seoul') {
-    return rotateImages(SEOUL_IMAGES, seed.imageStart, 5);
-  }
-
-  if (seed.destinationId === 'jeju') {
-    return rotateImages(JEJU_IMAGES, seed.imageStart, 5);
-  }
-
   return rotateImages(HOTEL_IMAGES, seed.imageStart, 5);
 }
 
@@ -630,7 +634,7 @@ function buildHotel(seed: HotelSeed): Hotel {
     images,
     policies: defaultPolicies,
     reviewBreakdown: makeBreakdown(seed.guestRating),
-    rooms: makeRooms(seed.id, seed.pricePerNight, seed.refundable),
+    rooms: makeRooms(seed.id, seed.pricePerNight, seed.refundable, seed.imageStart),
     reviews: makeReviews(seed.id, seed.neighborhood, seed.guestRating),
   };
 }
