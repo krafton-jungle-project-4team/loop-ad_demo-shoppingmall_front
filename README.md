@@ -58,6 +58,8 @@ VITE_LOOP_AD_DEBUG=true
 - `VITE_LOOP_AD_AD_API_BASE_URL`: Advertisement SDK가 광고 serve API를 호출할 때 쓰는 base URL입니다.
 - `VITE_LOOP_AD_DEBUG`: SDK 연동 로그를 확인할 때 `true`로 둡니다.
 
+배포 workflow도 같은 이름의 GitHub Actions 변수를 Vite 빌드에 전달합니다.
+
 로컬 Vite 개발 서버에서는 기본 API base URL로 `/api`를 사용하고, Vite proxy가 `https://dashboard.api.dev.loop-ad.org`로 전달합니다. 배포 빌드의 기본 API base URL은 `https://dashboard.api.dev.loop-ad.org/api`입니다.
 
 Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 프론트에서는 Event Collector 주소를 직접 조립하지 않습니다.
