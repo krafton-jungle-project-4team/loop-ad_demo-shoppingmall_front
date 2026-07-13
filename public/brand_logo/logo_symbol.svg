@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">StayLoop symbol</title>
+  <desc id="desc">A rounded hotel mark with a loop path, drawn in currentColor.</desc>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="8" width="48" height="48" rx="12" stroke-width="5"/>
+    <path d="M24 47V19h16v28" stroke-width="5"/>
+    <path d="M20 47h24" stroke-width="5"/>
+    <path d="M27 28h2M35 28h2M27 36h2M35 36h2" stroke-width="4"/>
+    <path d="M20 19c0-4 4-7 9-7h6c5 0 9 3 9 7" stroke-width="4"/>
+  </g>
+</svg>

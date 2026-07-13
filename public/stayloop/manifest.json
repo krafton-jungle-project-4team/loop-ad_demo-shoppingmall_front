@@ -1,0 +1,461 @@
+{
+  "generatedAt": "2026-07-10T06:24:00.438Z",
+  "source": "Mixed (Unsplash, Wikimedia Commons)",
+  "licenseUrl": "See per-asset license fields",
+  "assets": [
+    {
+      "id": "home-hero",
+      "localPath": "/stayloop/hero/home-hero.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1800&q=80",
+      "replacedSourceUrl": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1800&q=80",
+      "bytes": 573725,
+      "downloadedAt": "2026-07-10T06:23:55.714Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "destination-seoul",
+      "localPath": "/stayloop/destinations/seoul.jpg",
+      "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Seoul_%28175734251%29_%28cropped%29.jpg/960px-Seoul_%28175734251%29_%28cropped%29.jpg",
+      "replacedSourceUrl": "https://images.unsplash.com/photo-1538485399081-7c8edcb5896d?auto=format&fit=crop&w=900&q=80",
+      "source": "Wikimedia Commons",
+      "license": "See source file license on Wikimedia Commons",
+      "bytes": 166458,
+      "downloadedAt": "2026-07-10T06:23:56.223Z"
+    },
+    {
+      "id": "destination-jeju",
+      "localPath": "/stayloop/destinations/jeju.jpg",
+      "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Seongsan_Ilchulbong_from_the_air.jpg/960px-Seongsan_Ilchulbong_from_the_air.jpg",
+      "replacedSourceUrl": "https://images.unsplash.com/photo-1604244070146-7f2b5f22f669?auto=format&fit=crop&w=900&q=80",
+      "source": "Wikimedia Commons",
+      "license": "See source file license on Wikimedia Commons",
+      "bytes": 166367,
+      "downloadedAt": "2026-07-10T06:23:56.343Z"
+    },
+    {
+      "id": "destination-busan",
+      "localPath": "/stayloop/destinations/busan.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1542856391-010fb87dcfed?auto=format&fit=crop&w=900&q=80",
+      "bytes": 105370,
+      "downloadedAt": "2026-07-10T06:23:56.364Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "destination-gangneung",
+      "localPath": "/stayloop/destinations/gangneung.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+      "bytes": 80201,
+      "downloadedAt": "2026-07-10T06:23:56.446Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "destination-gyeongju",
+      "localPath": "/stayloop/destinations/gyeongju.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1612278675615-7b093b07772d?auto=format&fit=crop&w=900&q=80",
+      "bytes": 135999,
+      "downloadedAt": "2026-07-10T06:23:56.469Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "destination-yeosu",
+      "localPath": "/stayloop/destinations/yeosu.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+      "bytes": 223159,
+      "downloadedAt": "2026-07-10T06:23:56.491Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "destination-tokyo",
+      "localPath": "/stayloop/destinations/tokyo.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=900&q=80",
+      "bytes": 212454,
+      "downloadedAt": "2026-07-10T06:23:56.518Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "destination-osaka",
+      "localPath": "/stayloop/destinations/osaka.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1590559899731-a382839e5549?auto=format&fit=crop&w=900&q=80",
+      "bytes": 324580,
+      "downloadedAt": "2026-07-10T06:23:56.548Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "destination-bangkok",
+      "localPath": "/stayloop/destinations/bangkok.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=900&q=80",
+      "bytes": 171968,
+      "downloadedAt": "2026-07-10T06:23:56.575Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-01",
+      "localPath": "/stayloop/hotels/hotel-01.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 228795,
+      "downloadedAt": "2026-07-10T06:23:56.600Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-02",
+      "localPath": "/stayloop/hotels/hotel-02.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 165242,
+      "downloadedAt": "2026-07-10T06:23:56.621Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-03",
+      "localPath": "/stayloop/hotels/hotel-03.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 233054,
+      "downloadedAt": "2026-07-10T06:23:56.649Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-04",
+      "localPath": "/stayloop/hotels/hotel-04.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 174712,
+      "downloadedAt": "2026-07-10T06:23:56.670Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-05",
+      "localPath": "/stayloop/hotels/hotel-05.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 212022,
+      "downloadedAt": "2026-07-10T06:23:56.695Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-06",
+      "localPath": "/stayloop/hotels/hotel-06.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 139462,
+      "downloadedAt": "2026-07-10T06:23:56.717Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-07",
+      "localPath": "/stayloop/hotels/hotel-07.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 291053,
+      "downloadedAt": "2026-07-10T06:23:56.748Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-08",
+      "localPath": "/stayloop/hotels/hotel-08.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 151379,
+      "downloadedAt": "2026-07-10T06:23:56.766Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-09",
+      "localPath": "/stayloop/hotels/hotel-09.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 181544,
+      "downloadedAt": "2026-07-10T06:23:56.791Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-10",
+      "localPath": "/stayloop/hotels/hotel-10.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1602002418082-a4443e081dd1?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 206613,
+      "downloadedAt": "2026-07-10T06:23:56.814Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-11",
+      "localPath": "/stayloop/hotels/hotel-11.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 260907,
+      "downloadedAt": "2026-07-10T06:23:56.842Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-12",
+      "localPath": "/stayloop/hotels/hotel-12.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1623718649591-311775a30c43?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 252635,
+      "downloadedAt": "2026-07-10T06:23:56.867Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-13",
+      "localPath": "/stayloop/hotels/hotel-13.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1625244724120-1fd1d34d00f6?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 223273,
+      "downloadedAt": "2026-07-10T06:23:56.967Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-14",
+      "localPath": "/stayloop/hotels/hotel-14.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1660557989695-14fac79c086d?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 281775,
+      "downloadedAt": "2026-07-10T06:23:56.998Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-15",
+      "localPath": "/stayloop/hotels/hotel-15.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1573052905904-34ad8c27f0cc?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 472829,
+      "downloadedAt": "2026-07-10T06:23:57.040Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-16",
+      "localPath": "/stayloop/hotels/hotel-16.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1587702068694-a909ef4aa346?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 450583,
+      "downloadedAt": "2026-07-10T06:23:57.077Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-17",
+      "localPath": "/stayloop/hotels/hotel-17.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1621293954908-907159247fc8?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 180377,
+      "downloadedAt": "2026-07-10T06:23:57.104Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-18",
+      "localPath": "/stayloop/hotels/hotel-18.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1611048267451-e6ed903d4a38?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 221483,
+      "downloadedAt": "2026-07-10T06:23:57.130Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-19",
+      "localPath": "/stayloop/hotels/hotel-19.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1587870306141-4f19861e6c73?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 556607,
+      "downloadedAt": "2026-07-10T06:23:57.182Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "hotel-20",
+      "localPath": "/stayloop/hotels/hotel-20.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1693934304978-22274e6a3276?auto=format&fit=crop&w=1200&q=80",
+      "bytes": 366592,
+      "downloadedAt": "2026-07-10T06:23:57.213Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-01",
+      "localPath": "/stayloop/rooms/room-01.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=900&q=80",
+      "bytes": 82769,
+      "downloadedAt": "2026-07-10T06:23:57.228Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-02",
+      "localPath": "/stayloop/rooms/room-02.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80",
+      "bytes": 97819,
+      "downloadedAt": "2026-07-10T06:23:57.246Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-03",
+      "localPath": "/stayloop/rooms/room-03.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=900&q=80",
+      "bytes": 122617,
+      "downloadedAt": "2026-07-10T06:23:57.261Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-04",
+      "localPath": "/stayloop/rooms/room-04.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=900&q=80",
+      "bytes": 75729,
+      "downloadedAt": "2026-07-10T06:23:57.275Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-05",
+      "localPath": "/stayloop/rooms/room-05.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=900&q=80",
+      "bytes": 77831,
+      "downloadedAt": "2026-07-10T06:23:57.295Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-06",
+      "localPath": "/stayloop/rooms/room-06.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=900&q=80",
+      "bytes": 107851,
+      "downloadedAt": "2026-07-10T06:23:57.308Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-07",
+      "localPath": "/stayloop/rooms/room-07.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1629140727571-9b5c6f6267b4?auto=format&fit=crop&w=900&q=80",
+      "bytes": 166286,
+      "downloadedAt": "2026-07-10T06:23:57.788Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-08",
+      "localPath": "/stayloop/rooms/room-08.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1711059985570-4c32ed12a12c?auto=format&fit=crop&w=900&q=80",
+      "bytes": 118830,
+      "downloadedAt": "2026-07-10T06:23:58.885Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-09",
+      "localPath": "/stayloop/rooms/room-09.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=900&q=80",
+      "bytes": 221373,
+      "downloadedAt": "2026-07-10T06:23:58.909Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-10",
+      "localPath": "/stayloop/rooms/room-10.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80",
+      "bytes": 101185,
+      "downloadedAt": "2026-07-10T06:23:58.961Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-11",
+      "localPath": "/stayloop/rooms/room-11.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1631049552057-403cdb8f0658?auto=format&fit=crop&w=900&q=80",
+      "bytes": 76943,
+      "downloadedAt": "2026-07-10T06:23:59.062Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-12",
+      "localPath": "/stayloop/rooms/room-12.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=80",
+      "bytes": 78865,
+      "downloadedAt": "2026-07-10T06:23:59.078Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-13",
+      "localPath": "/stayloop/rooms/room-13.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1560448075-bb485b067938?auto=format&fit=crop&w=900&q=80",
+      "bytes": 67226,
+      "downloadedAt": "2026-07-10T06:23:59.128Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-14",
+      "localPath": "/stayloop/rooms/room-14.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+      "bytes": 154090,
+      "downloadedAt": "2026-07-10T06:23:59.145Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-15",
+      "localPath": "/stayloop/rooms/room-15.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=900&q=80",
+      "bytes": 167916,
+      "downloadedAt": "2026-07-10T06:23:59.166Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-16",
+      "localPath": "/stayloop/rooms/room-16.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=80",
+      "bytes": 125633,
+      "downloadedAt": "2026-07-10T06:23:59.187Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-17",
+      "localPath": "/stayloop/rooms/room-17.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&w=900&q=80",
+      "bytes": 88019,
+      "downloadedAt": "2026-07-10T06:23:59.237Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-18",
+      "localPath": "/stayloop/rooms/room-18.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1560448205-4d9b3e6bb6db?auto=format&fit=crop&w=900&q=80",
+      "bytes": 92502,
+      "downloadedAt": "2026-07-10T06:23:59.289Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-19",
+      "localPath": "/stayloop/rooms/room-19.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80",
+      "bytes": 137297,
+      "downloadedAt": "2026-07-10T06:23:59.315Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "room-20",
+      "localPath": "/stayloop/rooms/room-20.jpg",
+      "sourceUrl": "https://images.unsplash.com/photo-1742171046853-0961eabdc7d4?auto=format&fit=crop&w=900&q=80",
+      "bytes": 268936,
+      "downloadedAt": "2026-07-10T06:24:00.437Z",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    }
+  ],
+  "failures": []
+}

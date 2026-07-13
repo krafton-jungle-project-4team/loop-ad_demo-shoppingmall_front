@@ -12,8 +12,7 @@ import { hotels } from '../data/hotels';
 import { formatCurrency } from '../utils/format';
 import { createSearchParams, DEFAULT_SEARCH_STATE } from '../utils/searchParams';
 
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1800&q=80';
+const HERO_IMAGE = '/stayloop/hero/home-hero.jpg';
 
 function PromotionBanner() {
   return (

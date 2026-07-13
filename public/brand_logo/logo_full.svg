@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 236 64" role="img" aria-labelledby="title desc">
+  <title id="title">StayLoop logo</title>
+  <desc id="desc">StayLoop symbol and path-based wordmark drawn in currentColor.</desc>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <g>
+      <rect x="8" y="8" width="48" height="48" rx="12" stroke-width="5"/>
+      <path d="M24 47V19h16v28" stroke-width="5"/>
+      <path d="M20 47h24" stroke-width="5"/>
+      <path d="M27 28h2M35 28h2M27 36h2M35 36h2" stroke-width="4"/>
+      <path d="M20 19c0-4 4-7 9-7h6c5 0 9 3 9 7" stroke-width="4"/>
+    </g>
+    <g stroke-width="5">
+      <path d="M76 20h17M76 20v11h17v13H76"/>
+      <path d="M101 20h21M111.5 20v24"/>
+      <path d="M128 44l10-24 10 24M132 35h12"/>
+      <path d="M153 20l10 13 10-13M163 33v11"/>
+      <path d="M184 20v24h17"/>
+      <path d="M209 20h12c5 0 9 4 9 9v6c0 5-4 9-9 9h-12z"/>
+    </g>
+  </g>
+</svg>
