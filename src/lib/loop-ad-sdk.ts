@@ -3,16 +3,11 @@ import {
   type DemoUserProfile,
 } from "@/lib/demo-user";
 import { getLoopAdAttributionFields } from "@/utils/ad-attribution";
-import {
-  init as initLoopAdEventPackage,
-  version as loopAdEventPackageVersion,
-} from "@krafton-jungle-project-4team/loop-ad_event_sdk";
 
 type LoopAdPropertyValue =
   | string
   | number
   | boolean
-  | null
   | LoopAdPropertyValue[]
   | { [key: string]: LoopAdPropertyValue };
 
@@ -56,10 +51,7 @@ export type LoopAdTrackFields = {
   properties?: LoopAdEventProperties | null;
 };
 
-export type LoopAdEventContext = Omit<
-  LoopAdTrackFields,
-  "eventId" | "eventTime" | "properties"
->;
+export type LoopAdEventContext = LoopAdEventProperties;
 
 type LoopAdIdentity = {
   userId: string;
@@ -67,7 +59,14 @@ type LoopAdIdentity = {
 };
 
 type LoopAdEventClient = {
-  track(eventName: string, fields?: LoopAdTrackFields): void;
+  track(
+    eventName: string,
+    properties?: LoopAdEventProperties,
+    options?: {
+      eventId?: string;
+      eventTime?: string | number | Date;
+    },
+  ): void;
   setIdentity(identity: LoopAdIdentity, context?: LoopAdEventContext | null): void;
   clearIdentity(): void;
   destroy(): void;
@@ -153,26 +152,28 @@ declare global {
 
 const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
+const LOOP_AD_EVENT_SDK_URL =
+  "https://krafton-jungle-project-4team.github.io/loop-ad_event_sdk/loop-ad-event-sdk.iife.js";
+const DEFAULT_CONNECTION_URL =
+  "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57";
 const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
 const DEFAULT_PROJECT_ID = "demo_project";
-const DEFAULT_CONNECTION_URL =
-  "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/demo_project";
 const DEFAULT_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
 const DEV_AD_API_BASE_URL = "/api";
 const PROMOTION_CHANNEL = "onsite_banner";
-const VALIDATION_PROBE_QUERY = "loopad_validate_tracking_plan";
-const VALIDATION_PROBE_STORAGE_KEY = "loop-ad-tracking-plan-validation-probe.v1";
 
 const scriptLoaders = new Map<string, Promise<void>>();
-let eventClientPromise: Promise<LoopAdEventClient | null> | null = null;
+let eventClientPromise: Promise<LoopAdEventClient> | null = null;
 let eventClientInstance: LoopAdEventClient | null = null;
 let advertisementClientPromise: Promise<AdvertisementClient | null> | null = null;
 
 export const loopAdSdkConfig = {
+  eventSdkUrl: LOOP_AD_EVENT_SDK_URL,
   advertisementSdkUrl: LOOP_AD_ADVERTISEMENT_SDK_URL,
   projectId: textEnv(import.meta.env.VITE_LOOP_AD_PROJECT_ID) ?? DEFAULT_PROJECT_ID,
-  connectionUrl:
+  connectionUrl: resolveEventConnectionUrl(
     textEnv(import.meta.env.VITE_LOOP_AD_CONNECTION_URL) ?? DEFAULT_CONNECTION_URL,
+  ),
   promotionRunId: textEnv(import.meta.env.VITE_LOOP_AD_PROMOTION_RUN_ID) ?? "",
   advertisementApiBaseUrl:
     textEnv(import.meta.env.VITE_LOOP_AD_AD_API_BASE_URL) ??
@@ -182,39 +183,44 @@ export const loopAdSdkConfig = {
     import.meta.env.DEV,
 };
 
-export function initLoopAdEventSdk(): Promise<LoopAdEventClient | null> {
-  const identity = getDemoIdentity();
-
-  if (!identity) {
-    return Promise.resolve(null);
+function resolveEventConnectionUrl(configuredUrl: string): string {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return configuredUrl;
   }
 
+  const connectionUrl = new URL(configuredUrl, window.location.origin);
+  if (connectionUrl.origin !== new URL(DEFAULT_CONNECTION_URL).origin) {
+    return connectionUrl.href;
+  }
+
+  return new URL(
+    `${connectionUrl.pathname}${connectionUrl.search}`,
+    window.location.origin,
+  ).href;
+}
+
+export function initLoopAdEventSdk(): Promise<LoopAdEventClient> {
   if (!eventClientPromise) {
-    eventClientPromise = Promise.resolve()
+    eventClientPromise = loadScript(
+      loopAdSdkConfig.eventSdkUrl,
+      () => window.LoopAdEventSDK,
+    )
       .then(async () => {
-        const sdk: LoopAdEventSdkGlobal = window.LoopAdEventSDK ?? {
-          init: initLoopAdEventPackage,
-          version: loopAdEventPackageVersion,
-        };
+        const sdk = window.LoopAdEventSDK;
 
-        const currentIdentity = getDemoIdentity();
-
-        if (!currentIdentity) {
-          eventClientPromise = null;
-          eventClientInstance = null;
-          return null;
+        if (!sdk) {
+          throw new Error("LoopAdEventSDK global was not registered.");
         }
 
         const client = await sdk.init({
           connectionUrl: loopAdSdkConfig.connectionUrl,
+          identity: getDemoIdentity(),
           debug: loopAdSdkConfig.debug,
           autoTrackPageViews: false,
-          collectDomEvents: false,
+          collectDomEvents: true,
           context: createLoopAdSharedContext(),
         });
 
-        client.setIdentity(currentIdentity, createLoopAdSharedContext());
-        runTrackingPlanValidationProbe(client);
         eventClientInstance = client;
 
         return client;
@@ -233,26 +239,7 @@ export function destroyLoopAdEventSdk(): void {
   const clientPromise = eventClientPromise;
   eventClientPromise = null;
   eventClientInstance = null;
-  void clientPromise?.then((client) => client?.destroy()).catch(() => undefined);
-}
-
-function runTrackingPlanValidationProbe(client: LoopAdEventClient): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const enabled = new URL(window.location.href).searchParams.get(VALIDATION_PROBE_QUERY) === "1";
-  if (!enabled || window.sessionStorage.getItem(VALIDATION_PROBE_STORAGE_KEY) === "done") {
-    return;
-  }
-  window.sessionStorage.setItem(VALIDATION_PROBE_STORAGE_KEY, "done");
-
-  client.track("page_view", { properties: { validation_probe: "valid" } });
-  client.track("__loopad_unregistered_validation_probe");
-  client.track("hotel_detail_view", { properties: { validation_probe: "required_missing" } });
-  client.track("hotel_detail_view", {
-    properties: { hotel_id: 123, validation_probe: "type_error" },
-  });
+  void clientPromise?.then((client) => client.destroy()).catch(() => undefined);
 }
 
 export function renderLoopAdPlacement(options: {
@@ -305,12 +292,14 @@ export function trackLoopAdEvent(eventName: string, fields?: LoopAdTrackFields):
   const readyClient = eventClientInstance;
 
   if (readyClient) {
-    readyClient.track(eventName, trackFields);
+    trackWithGenericClient(readyClient, eventName, trackFields);
     return;
   }
 
   void initLoopAdEventSdk()
-    .then((client) => client?.track(eventName, trackFields))
+    .then((client) => {
+      trackWithGenericClient(client, eventName, trackFields);
+    })
     .catch((error: unknown) => {
       if (loopAdSdkConfig.debug) {
         console.warn("Loop Ad Event SDK tracking skipped.", error);
@@ -331,7 +320,7 @@ export function setLoopAdDemoUserIdentity(): void {
     .then((client) => {
       const identity = getDemoIdentity();
 
-      if (!client || !identity) {
+      if (!identity) {
         return;
       }
 
@@ -407,12 +396,12 @@ function resetLoopAdAdvertisementSdk(): void {
 }
 
 function loadScript<T>(src: string, getGlobal: () => T | undefined): Promise<void> {
-  if (typeof document === "undefined") {
-    return Promise.reject(new Error("Loop Ad SDK scripts require a browser document."));
-  }
-
   if (getGlobal()) {
     return Promise.resolve();
+  }
+
+  if (typeof document === "undefined") {
+    return Promise.reject(new Error("Loop Ad SDK scripts require a browser document."));
   }
 
   const existingLoader = scriptLoaders.get(src);
@@ -459,7 +448,6 @@ function createPageViewFields(previousUrl?: string | null): LoopAdTrackFields {
     promotionChannel: PROMOTION_CHANNEL,
     device: detectDevice(),
     properties: {
-      page,
       route_group: page.path,
     },
   };
@@ -533,7 +521,7 @@ function storeDemoSessionId(sessionId: string): void {
 
 function createLoopAdSharedContext(): LoopAdEventContext {
   return {
-    promotionChannel: PROMOTION_CHANNEL,
+    promotion_channel: PROMOTION_CHANNEL,
     device: detectDevice(),
   };
 }
@@ -584,6 +572,76 @@ function withLoopAdAttributionFields(
       ...(fields.properties ?? {}),
     },
   };
+}
+
+function trackWithGenericClient(
+  client: LoopAdEventClient,
+  eventName: string,
+  fields: LoopAdTrackFields,
+): void {
+  const options: { eventId?: string; eventTime?: string | number | Date } = {};
+  if (typeof fields.eventId === "string" && fields.eventId.trim()) {
+    options.eventId = fields.eventId;
+  }
+  if (
+    typeof fields.eventTime === "string" ||
+    typeof fields.eventTime === "number" ||
+    fields.eventTime instanceof Date
+  ) {
+    options.eventTime = fields.eventTime;
+  }
+  client.track(
+    eventName,
+    propertiesFromTrackFields(fields),
+    Object.keys(options).length > 0 ? options : undefined,
+  );
+}
+
+function propertiesFromTrackFields(fields: LoopAdTrackFields): LoopAdEventProperties {
+  return compactProperties({
+    campaign_id: fields.campaignId,
+    promotion_id: fields.promotionId,
+    promotion_run_id: fields.promotionRunId,
+    ad_experiment_id: fields.adExperimentId,
+    promotion_channel: fields.promotionChannel,
+    segment_id: fields.segmentId,
+    content_id: fields.contentId,
+    content_option_id: fields.contentOptionId,
+    placement_id: fields.placementId,
+    redirect_id: fields.redirectId,
+    landing_type: fields.landingType,
+    landing_url: fields.landingUrl,
+    target_url: fields.targetUrl,
+    hotel_id: fields.hotelId,
+    hotel_cluster: fields.hotelCluster,
+    hotel_market: fields.hotelMarket,
+    hotel_city: fields.hotelCity,
+    hotel_country: fields.hotelCountry,
+    checkin_date: fields.checkinDate,
+    checkout_date: fields.checkoutDate,
+    adult_count: fields.adultCount,
+    child_count: fields.childCount,
+    breakfast_included: fields.breakfastIncluded,
+    free_cancellation: fields.freeCancellation,
+    room_type: fields.roomType,
+    booking_id: fields.bookingId,
+    currency: fields.currency,
+    device: fields.device,
+    price: fields.price,
+    revenue: fields.revenue,
+    ...(fields.properties ?? {}),
+  });
+}
+
+function compactProperties(
+  value: Record<string, LoopAdPropertyValue | null | undefined>,
+): LoopAdEventProperties {
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      (entry): entry is [string, LoopAdPropertyValue] =>
+        entry[1] !== null && entry[1] !== undefined,
+    ),
+  );
 }
 
 function createDemoUserProperties(profile: DemoUserProfile): LoopAdEventProperties {
