@@ -24,6 +24,7 @@ const CAMPAIGN_PARAM_KEYS = [
   "ad_experiment_id",
   "adExperimentId",
   "loopad_promotion_channel",
+  "loopad_channel",
   "promotion_channel",
   "promotionChannel",
   "loopad_segment_id",
@@ -103,8 +104,8 @@ function createCampaignRouteEvent(
     : undefined;
   const deal = textParam(params, "deal") ?? textParam(attributionParams, "deal");
   const source =
-    textParam(params, "utm_source", "source", "channel") ??
-    textParam(attributionParams, "utm_source", "source", "channel");
+    textParam(params, "utm_source", "source", "channel", "loopad_channel") ??
+    textParam(attributionParams, "utm_source", "source", "channel", "loopad_channel");
   const medium =
     textParam(params, "utm_medium", "medium") ??
     textParam(attributionParams, "utm_medium", "medium");
@@ -142,6 +143,7 @@ function createCampaignRouteEvent(
         textParam(
           attributionParams,
           "loopad_promotion_channel",
+          "loopad_channel",
           "promotion_channel",
           "promotionChannel",
         ) ??
@@ -220,6 +222,7 @@ function hasLoopAdAttributionSignal(params: URLSearchParams): boolean {
     "loopad_content_id",
     "loopad_content_option_id",
     "loopad_redirect_id",
+    "loopad_channel",
   ].some((key) => Boolean(textParam(params, key)));
 }
 

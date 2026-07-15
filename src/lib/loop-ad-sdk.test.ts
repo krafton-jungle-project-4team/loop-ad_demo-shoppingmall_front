@@ -4,6 +4,7 @@ import {
   destroyLoopAdEventSdk,
   getDemoIdentity,
   initLoopAdEventSdk,
+  renderLoopAdPlacement,
   trackLoopAdEvent,
   trackLoopAdPageView,
 } from "@/lib/loop-ad-sdk";
@@ -284,7 +285,7 @@ describe("getDemoIdentity", () => {
         autoTrackPageViews: false,
         collectDomEvents: true,
         connectionUrl:
-          "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57",
+          "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/demo_project",
         identity: {
           userId: "demo-user-busan-male-30s",
           sessionId: "demo-session-uuid-1",
@@ -323,7 +324,7 @@ describe("getDemoIdentity", () => {
       "&loopad_promotion_id=promotion-real" +
       "&loopad_promotion_run_id=run-real" +
       "&loopad_ad_experiment_id=exp-real" +
-      "&loopad_promotion_channel=email" +
+      "&loopad_channel=email" +
       "&loopad_segment_id=segment-real" +
       "&loopad_content_id=content-real" +
       "&loopad_content_option_id=option-real" +
@@ -440,6 +441,49 @@ describe("getDemoIdentity", () => {
       }),
     );
     expect(bookingProperties?.campaign_id).not.toBe("summer");
+  });
+
+  it("uses the redirect promotion run for Advertisement SDK requests", async () => {
+    const href =
+      "https://demo-shoppingmall.dev.loop-ad.org/login" +
+      "?loopad_promotion_run_id=run-from-redirect";
+    const { localStorage } = stubBrowserStorage(
+      new MemoryStorage(),
+      new MemoryStorage(),
+      href,
+    );
+    localStorage.setItem(PROFILE_STORAGE_KEY, "busan-male-30s");
+    const render = vi.fn(async () => ({
+      placementKey: "C1_MAIN_TOP",
+      placementId: "C1_MAIN_TOP",
+      status: "empty" as const,
+      ad: null,
+      tracking: null,
+    }));
+    const init = vi.fn(() => ({ render, destroy: vi.fn() }));
+
+    Object.assign(window, {
+      LoopAdAdvertisementSDK: {
+        init,
+        version: "test",
+      },
+    });
+
+    await renderLoopAdPlacement({
+      placementKey: "C1_MAIN_TOP",
+      targetId: "ad-slot",
+      page: "/",
+    });
+
+    expect(init).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projectId: "demo_project",
+        promotionRunId: "run-from-redirect",
+      }),
+    );
+    expect(render).toHaveBeenCalledWith(
+      expect.objectContaining({ placementId: "C1_MAIN_TOP" }),
+    );
   });
 });
 
