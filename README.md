@@ -59,6 +59,24 @@ Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 
 Demo 배포에서는 SDK debug를 항상 켜서 Connection 초기화와 Tracking Plan validation 실패를
 브라우저에서 확인할 수 있습니다.
 
+## SDK 진단 매니페스트
+
+`vite-plugins/loop-ad-diagnostics.ts`가 Vite 개발 서버와 배포 빌드에서 이벤트 참조를
+수집합니다. 배포할 때 `dist/loopad-event-manifest.json`을 항상 만들고, `index.html`에
+매니페스트 위치를 나타내는 meta 태그를 넣습니다. 따라서 배포된 데모의 SDK DevTools는
+Tracking Plan과 아래 정보를 함께 보여줍니다.
+
+- 이벤트를 참조한 상대 파일 경로와 줄 번호
+- Tracking Plan에는 있지만 소스 참조를 찾지 못한 이벤트와 추가 코드 예시
+- 소스에는 있지만 Tracking Plan에 등록되지 않은 리터럴 이벤트명
+- 현재 브라우저 세션에서 관찰한 호출, 검증, 전송 결과
+
+리다이렉트 페이지가 생산하는 `리다이렉트_클릭`은 데모 소스 밖의 이벤트이므로 Vite 설정의
+`externalEvents`에 선언합니다. 이 생성 과정은 정적 분석 결과를 배포물에 포함할 뿐,
+이벤트 누락을 이유로 CI나 빌드를 실패시키지 않습니다. 이벤트를 전달받는 래퍼 함수는
+`vite.config.ts`의 `trackFunctions`에 등록해야 하며, 타입 alias 선언만으로는 소스 참조로
+판정하지 않습니다.
+
 ## 연동 확인하기
 
 1. 앱을 실행하고 `/` 화면을 엽니다.
