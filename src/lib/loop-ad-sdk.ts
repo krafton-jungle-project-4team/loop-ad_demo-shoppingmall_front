@@ -154,33 +154,30 @@ const LOOP_AD_ADVERTISEMENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js";
 const LOOP_AD_EVENT_SDK_URL =
   "https://krafton-jungle-project-4team.github.io/loop-ad_event_sdk/loop-ad-event-sdk.iife.js";
-const DEFAULT_CONNECTION_URL =
-  "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57";
+const LOOP_AD_CONNECTION_URL =
+  "https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/demo_project";
 const DEMO_SESSION_STORAGE_KEY = "loop-ad-demo-session-id";
-const DEFAULT_PROJECT_ID = "demo_project";
-const DEFAULT_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
+const LOOP_AD_PROJECT_ID = "demo_project";
+const LOOP_AD_AD_API_BASE_URL = "https://dashboard.api.dev.loop-ad.org/api";
 const DEV_AD_API_BASE_URL = "/api";
+const LOOP_AD_DEBUG = true;
 const PROMOTION_CHANNEL = "onsite_banner";
 
 const scriptLoaders = new Map<string, Promise<void>>();
 let eventClientPromise: Promise<LoopAdEventClient> | null = null;
 let eventClientInstance: LoopAdEventClient | null = null;
 let advertisementClientPromise: Promise<AdvertisementClient | null> | null = null;
+let advertisementClientPromotionRunId: string | null = null;
 
 export const loopAdSdkConfig = {
   eventSdkUrl: LOOP_AD_EVENT_SDK_URL,
   advertisementSdkUrl: LOOP_AD_ADVERTISEMENT_SDK_URL,
-  projectId: textEnv(import.meta.env.VITE_LOOP_AD_PROJECT_ID) ?? DEFAULT_PROJECT_ID,
-  connectionUrl: resolveEventConnectionUrl(
-    textEnv(import.meta.env.VITE_LOOP_AD_CONNECTION_URL) ?? DEFAULT_CONNECTION_URL,
-  ),
-  promotionRunId: textEnv(import.meta.env.VITE_LOOP_AD_PROMOTION_RUN_ID) ?? "",
-  advertisementApiBaseUrl:
-    textEnv(import.meta.env.VITE_LOOP_AD_AD_API_BASE_URL) ??
-    (import.meta.env.DEV ? DEV_AD_API_BASE_URL : DEFAULT_AD_API_BASE_URL),
-  debug:
-    textEnv(import.meta.env.VITE_LOOP_AD_DEBUG) === "true" ||
-    import.meta.env.DEV,
+  projectId: LOOP_AD_PROJECT_ID,
+  connectionUrl: resolveEventConnectionUrl(LOOP_AD_CONNECTION_URL),
+  advertisementApiBaseUrl: import.meta.env.DEV
+    ? DEV_AD_API_BASE_URL
+    : LOOP_AD_AD_API_BASE_URL,
+  debug: LOOP_AD_DEBUG,
 };
 
 function resolveEventConnectionUrl(configuredUrl: string): string {
@@ -189,7 +186,7 @@ function resolveEventConnectionUrl(configuredUrl: string): string {
   }
 
   const connectionUrl = new URL(configuredUrl, window.location.origin);
-  if (connectionUrl.origin !== new URL(DEFAULT_CONNECTION_URL).origin) {
+  if (connectionUrl.origin !== new URL(LOOP_AD_CONNECTION_URL).origin) {
     return connectionUrl.href;
   }
 
@@ -337,12 +334,14 @@ export function setLoopAdDemoUserIdentity(): void {
 
 function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient | null> {
   const identity = getDemoIdentity();
+  const promotionRunId = getCurrentPromotionRunId();
 
   if (!identity) {
     return Promise.resolve(null);
   }
 
-  if (!loopAdSdkConfig.promotionRunId) {
+  if (!promotionRunId) {
+    resetLoopAdAdvertisementSdk();
     if (loopAdSdkConfig.debug) {
       console.info("Loop Ad Advertisement SDK skipped without a promotion run id.");
     }
@@ -350,7 +349,15 @@ function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient | null> {
     return Promise.resolve(null);
   }
 
+  if (
+    advertisementClientPromise &&
+    advertisementClientPromotionRunId !== promotionRunId
+  ) {
+    resetLoopAdAdvertisementSdk();
+  }
+
   if (!advertisementClientPromise) {
+    advertisementClientPromotionRunId = promotionRunId;
     advertisementClientPromise = loadScript(
       loopAdSdkConfig.advertisementSdkUrl,
       () => window.LoopAdAdvertisementSDK,
@@ -373,12 +380,13 @@ function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient | null> {
           apiBaseUrl: loopAdSdkConfig.advertisementApiBaseUrl,
           projectId: loopAdSdkConfig.projectId,
           userId: currentIdentity.userId,
-          promotionRunId: loopAdSdkConfig.promotionRunId,
+          promotionRunId,
           debug: loopAdSdkConfig.debug,
         });
       })
       .catch((error: unknown) => {
         advertisementClientPromise = null;
+        advertisementClientPromotionRunId = null;
         throw error;
       });
   }
@@ -389,6 +397,7 @@ function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient | null> {
 function resetLoopAdAdvertisementSdk(): void {
   const clientPromise = advertisementClientPromise;
   advertisementClientPromise = null;
+  advertisementClientPromotionRunId = null;
 
   void clientPromise
     ?.then((client) => client?.destroy())
@@ -543,6 +552,27 @@ function createLoopAdAdContext(): Record<string, string | null> {
   };
 }
 
+function getCurrentPromotionRunId(): string | null {
+  if (typeof window !== "undefined") {
+    const params = new URL(window.location.href).searchParams;
+
+    for (const key of [
+      "loopad_promotion_run_id",
+      "promotion_run_id",
+      "promotionRunId",
+    ]) {
+      const value = params.get(key)?.trim();
+
+      if (value) {
+        return value;
+      }
+    }
+  }
+
+  const promotionRunId = getLoopAdAttributionFields().promotionRunId;
+  return isNonEmptyString(promotionRunId) ? promotionRunId : null;
+}
+
 function withDemoUserTrackFields(fields: LoopAdTrackFields = {}): LoopAdTrackFields {
   const profile = getSelectedDemoUserProfile();
 
@@ -682,8 +712,4 @@ function detectDevice(): "mobile" | "tablet" | "desktop" {
   }
 
   return "desktop";
-}
-
-function textEnv(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
 }

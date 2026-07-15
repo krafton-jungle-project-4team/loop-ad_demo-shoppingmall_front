@@ -28,37 +28,27 @@ Vite 기본 주소는 `http://localhost:5173`입니다. 이미 사용 중인 포
 Event SDK와 Advertisement SDK는 GitHub Pages의 공개 IIFE bundle을 동적으로 로드합니다.
 npm registry 설정이나 패키지 토큰은 사용하지 않습니다.
 
-Event SDK Connection URL은 `VITE_LOOP_AD_CONNECTION_URL`을 사용합니다. 값이 없으면
-개발 데모용 공개 URL을 fallback으로 사용합니다.
+Demo SDK 설정은 `src/lib/loop-ad-sdk.ts`의 코드 상수로 관리합니다. Infra가 관리하지
+않는 `VITE_LOOP_AD_*` 환경변수나 GitHub Actions variable은 사용하지 않습니다.
 
 ```text
-https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57
+projectId: demo_project
+connectionUrl: https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/demo_project
+advertisementApiBaseUrl: https://dashboard.api.dev.loop-ad.org/api
 ```
 
-Tracking Plan 이벤트와 스키마의 등록·게시는 infra에서 담당합니다.
+Tracking Plan 이벤트와 스키마는 Dashboard에서 수정하고 게시합니다. Infra는 Demo
+frontend 배포 리소스와 공통 배포 workflow만 관리합니다.
 
 ```text
 https://krafton-jungle-project-4team.github.io/loop-ad_event_sdk/loop-ad-event-sdk.iife.js
 https://krafton-jungle-project-4team.github.io/loop-ad_advertisement_sdk/loop-ad-advertisement-sdk.iife.js
 ```
 
-필요한 경우 `.env.local`에서 값을 덮어씁니다.
-
-```bash
-VITE_LOOP_AD_PROJECT_ID=demo_project
-VITE_LOOP_AD_CONNECTION_URL=https://dashboard.api.dev.loop-ad.org/api/public/v1/sdk/connections/wk_b35b42ee88bb4469becef289cdf29c57
-VITE_LOOP_AD_PROMOTION_RUN_ID=demo_project
-VITE_LOOP_AD_AD_API_BASE_URL=https://dashboard.api.dev.loop-ad.org/api
-VITE_LOOP_AD_DEBUG=true
-```
-
-- `VITE_LOOP_AD_PROJECT_ID`: 두 SDK가 공유하는 프로젝트 ID입니다.
-- `VITE_LOOP_AD_CONNECTION_URL`: Dashboard가 게시한 Event SDK Connection URL입니다.
-- `VITE_LOOP_AD_PROMOTION_RUN_ID`: Advertisement SDK가 banner resolve API에 넘기는 promotion run ID입니다.
-- `VITE_LOOP_AD_AD_API_BASE_URL`: Advertisement SDK가 광고 serve API를 호출할 때 쓰는 base URL입니다.
-- `VITE_LOOP_AD_DEBUG`: SDK 연동 로그를 확인할 때 `true`로 둡니다.
-
-배포 workflow도 같은 이름의 GitHub Actions 변수를 Vite 빌드에 전달합니다.
+Advertisement SDK의 `promotionRunId`는 리다이렉트 URL의
+`loopad_promotion_run_id`, `promotion_run_id`, `promotionRunId` 순서로 읽습니다. URL에
+값이 없으면 현재 세션에 저장된 attribution을 사용합니다. 어느 쪽에도 값이 없으면 광고
+지면만 비우고 Event SDK 수집은 계속합니다.
 
 로컬 Vite 개발 서버에서는 기본 API base URL로 `/api`를 사용하고, Vite proxy가 `https://dashboard.api.dev.loop-ad.org`로 전달합니다. 배포 빌드의 기본 API base URL은 `https://dashboard.api.dev.loop-ad.org/api`입니다.
 
@@ -66,6 +56,8 @@ Event SDK Connection URL도 로컬에서는 같은 Vite proxy를 사용합니다
 등록된 dev 배포 origin으로 요청하므로 localhost의 origin allowlist 오류를 피합니다.
 
 Event Collector endpoint는 Event SDK bundle 내부 계약을 따릅니다. 이 프론트에서는 Event Collector 주소를 직접 조립하지 않습니다.
+Demo 배포에서는 SDK debug를 항상 켜서 Connection 초기화와 Tracking Plan validation 실패를
+브라우저에서 확인할 수 있습니다.
 
 ## 연동 확인하기
 

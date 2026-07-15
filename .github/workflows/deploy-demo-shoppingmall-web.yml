@@ -49,13 +49,7 @@ jobs:
       node_version: "25"
       working_directory: .
       install_command: npm ci
-      build_command: >-
-        VITE_LOOP_AD_PROJECT_ID=${{ vars.VITE_LOOP_AD_PROJECT_ID }}
-        VITE_LOOP_AD_CONNECTION_URL=${{ vars.VITE_LOOP_AD_CONNECTION_URL }}
-        VITE_LOOP_AD_PROMOTION_RUN_ID=${{ vars.VITE_LOOP_AD_PROMOTION_RUN_ID }}
-        VITE_LOOP_AD_AD_API_BASE_URL=${{ vars.VITE_LOOP_AD_AD_API_BASE_URL }}
-        VITE_LOOP_AD_DEBUG=${{ vars.VITE_LOOP_AD_DEBUG }}
-        npm run build
+      build_command: npm run build
       build_output_dir: dist
       s3_bucket: loop-ad-dev-demo-shoppingmall-web
       s3_prefix: .
