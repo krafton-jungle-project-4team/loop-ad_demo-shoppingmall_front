@@ -10,7 +10,7 @@ import { HotelCard } from '../components/hotel/HotelCard';
 import { FilterSidebar } from '../components/results/FilterSidebar';
 import { SortDropdown } from '../components/results/SortDropdown';
 import { SearchSummaryBar } from '../components/search/SearchSummaryBar';
-import { hotels } from '../data/hotels';
+import { BLACK_FRIDAY_HOTEL_IDS, hotels } from '../data/hotels';
 import type { Hotel } from '../types/hotel';
 import type { Filters, PriceBucket, SortOption } from '../types/search';
 import { getDestinationName } from '../utils/searchParams';
@@ -81,14 +81,14 @@ export function SearchResultsPage() {
 
   const visibleHotels = useMemo(() => {
     const destinationHotels = searchState.destination ? hotels.filter((hotel) => hotel.destinationId === searchState.destination) : hotels;
-    const dealAwareHotels = searchState.deal === 'summer' ? destinationHotels.filter((hotel) => hotel.originalPrice || hotel.badge === '오늘의 특가') : destinationHotels;
+    const dealAwareHotels = searchState.deal === 'summer' ? destinationHotels.filter((hotel) => BLACK_FRIDAY_HOTEL_IDS.has(hotel.id)) : destinationHotels;
     const sourceHotels = dealAwareHotels.length > 0 ? dealAwareHotels : destinationHotels;
     const filteredHotels = sourceHotels.filter((hotel) => matchesFilters(hotel, filters));
 
     return sortHotels(filteredHotels, sortOption, searchState.deal);
   }, [filters, searchState.deal, searchState.destination, sortOption]);
 
-  const displayCount = visibleHotels.length ? visibleHotels.length + 180 : 0;
+  const displayCount = searchState.deal === 'summer' ? visibleHotels.length : visibleHotels.length ? visibleHotels.length + 180 : 0;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -103,7 +103,7 @@ export function SearchResultsPage() {
         <PageContainer className="py-5">
           <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-loop-700">{searchState.deal === 'summer' ? '여름 특가 숙소' : `${destinationName} 숙소`}</p>
+              <p className="text-sm font-semibold text-loop-700">{searchState.deal === 'summer' ? '제주·오키나와 블랙프라이데이' : `${destinationName} 숙소`}</p>
               <h2 className="mt-1 text-2xl font-bold text-ink-900">{displayCount.toLocaleString('ko-KR')}개 숙소를 비교해보세요</h2>
             </div>
             <div className="flex flex-wrap gap-2">

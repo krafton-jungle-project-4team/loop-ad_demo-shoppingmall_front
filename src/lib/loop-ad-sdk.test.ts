@@ -141,7 +141,7 @@ describe("getDemoIdentity", () => {
   });
 
   it("starts the SDK before login so DevTools can inspect the connection", async () => {
-    stubBrowserStorage();
+    const { sessionStorage } = stubBrowserStorage();
     const destroy = vi.fn();
     const init = vi.fn(async () => ({
       track: vi.fn(),

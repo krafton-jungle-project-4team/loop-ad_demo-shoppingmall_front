@@ -20,7 +20,7 @@ export function HotelGallery({ hotel }: HotelGalleryProps) {
         />
       </div>
       {restImages.slice(0, 4).map((image, index) => (
-        <div key={image} className="image-fallback relative min-h-[140px]">
+        <div key={`${hotel.id}-${image}-${index}`} className="image-fallback relative min-h-[140px]">
           <img
             className="h-full w-full object-cover"
             src={image}
