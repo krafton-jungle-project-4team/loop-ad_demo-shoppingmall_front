@@ -57,7 +57,13 @@ function makeBreakdown(rating: number): ReviewBreakdown {
   };
 }
 
-function makeRooms(hotelId: string, basePrice: number, refundable: boolean, imageStart: number): Room[] {
+function makeRooms(
+  hotelId: string,
+  basePrice: number,
+  refundable: boolean,
+  imageStart: number,
+  imageSet?: string[],
+): Room[] {
   const roomPairOffset = ROOM_IMAGES.length / 2;
 
   return [
@@ -65,7 +71,7 @@ function makeRooms(hotelId: string, basePrice: number, refundable: boolean, imag
       id: 'standard-double',
       hotelId,
       name: 'Standard Double Room',
-      image: ROOM_IMAGES[imageStart % ROOM_IMAGES.length],
+      image: imageSet?.[0] ?? ROOM_IMAGES[imageStart % ROOM_IMAGES.length],
       bedType: '더블 침대 1개',
       capacity: 2,
       size: '24m²',
@@ -79,7 +85,7 @@ function makeRooms(hotelId: string, basePrice: number, refundable: boolean, imag
       id: 'deluxe-king',
       hotelId,
       name: 'Deluxe King Room',
-      image: ROOM_IMAGES[(imageStart + roomPairOffset) % ROOM_IMAGES.length],
+      image: imageSet?.[1] ?? ROOM_IMAGES[(imageStart + roomPairOffset) % ROOM_IMAGES.length],
       bedType: '킹 침대 1개',
       capacity: 3,
       size: '32m²',
@@ -129,7 +135,12 @@ function makeReviews(hotelId: string, neighborhood: string, rating: number): Rev
 
 type HotelSeed = Omit<Hotel, 'rooms' | 'reviews' | 'reviewBreakdown' | 'policies'> & {
   imageStart: number;
+  imageSet?: string[];
+  roomImageSet?: string[];
 };
+
+const JEJU_RESORT_EXTERIOR = '/stayloop/promotions/jeju-resort-exterior.png';
+const OKINAWA_RESORT_EXTERIOR = '/stayloop/promotions/okinawa-resort-exterior.png';
 
 const defaultPolicies = {
   checkIn: '15:00 이후',
@@ -277,6 +288,17 @@ const seeds: HotelSeed[] = [
     propertyType: 'resort',
     images: [],
     imageStart: 5,
+    imageSet: [
+      JEJU_RESORT_EXTERIOR,
+      '/stayloop/promotions/rooms/jeju-ocean-breeze-room.png',
+      '/stayloop/promotions/galleries/jeju-ocean-breeze/pool-terrace.png',
+      '/stayloop/promotions/galleries/jeju-ocean-breeze/lobby.png',
+      '/stayloop/promotions/galleries/jeju-ocean-breeze/restaurant.png',
+    ],
+    roomImageSet: [
+      '/stayloop/promotions/rooms/jeju-ocean-breeze-room.png',
+      '/stayloop/promotions/galleries/jeju-ocean-breeze/deluxe-room.png',
+    ],
     distanceText: '중문색달해변에서 차량 5분',
     badge: '오늘의 특가',
     description: '제주 남쪽 바다를 조망하는 리조트로 휴양과 가족 여행에 모두 적합합니다.',
@@ -301,6 +323,17 @@ const seeds: HotelSeed[] = [
     propertyType: 'resort',
     images: [],
     imageStart: 6,
+    imageSet: [
+      '/stayloop/promotions/jeju-aewol-sunset-villa.png',
+      '/stayloop/promotions/rooms/jeju-aewol-sunset-room.png',
+      '/stayloop/promotions/galleries/jeju-aewol-sunset/pool-deck.png',
+      '/stayloop/promotions/galleries/jeju-aewol-sunset/living-room.png',
+      '/stayloop/promotions/galleries/jeju-aewol-sunset/deluxe-room.png',
+    ],
+    roomImageSet: [
+      '/stayloop/promotions/rooms/jeju-aewol-sunset-room.png',
+      '/stayloop/promotions/galleries/jeju-aewol-sunset/deluxe-room.png',
+    ],
     distanceText: '애월 카페거리에서 차량 4분',
     badge: '인기 숙소',
     description: '노을이 아름다운 애월 해안가에 자리한 프라이빗 빌라형 숙소입니다.',
@@ -324,6 +357,17 @@ const seeds: HotelSeed[] = [
     propertyType: 'guesthouse',
     images: [],
     imageStart: 7,
+    imageSet: [
+      '/stayloop/promotions/jeju-seongsan-morning-stay.png',
+      '/stayloop/promotions/rooms/jeju-seongsan-morning-room.png',
+      '/stayloop/promotions/galleries/jeju-seongsan-morning/rooftop-terrace.png',
+      '/stayloop/promotions/galleries/jeju-seongsan-morning/shared-lounge.png',
+      '/stayloop/promotions/galleries/jeju-seongsan-morning/deluxe-room.png',
+    ],
+    roomImageSet: [
+      '/stayloop/promotions/rooms/jeju-seongsan-morning-room.png',
+      '/stayloop/promotions/galleries/jeju-seongsan-morning/deluxe-room.png',
+    ],
     distanceText: '성산일출봉에서 차량 6분',
     badge: '회원가',
     description: '이른 아침 일출 여행에 편리한 성산권 실속형 숙소입니다.',
@@ -348,6 +392,17 @@ const seeds: HotelSeed[] = [
     propertyType: 'hotel',
     images: [],
     imageStart: 8,
+    imageSet: [
+      '/stayloop/promotions/jeju-halla-garden-hotel.png',
+      '/stayloop/promotions/rooms/jeju-halla-garden-room.png',
+      '/stayloop/promotions/galleries/jeju-halla-garden/tea-lounge.png',
+      '/stayloop/promotions/galleries/jeju-halla-garden/lobby.png',
+      '/stayloop/promotions/galleries/jeju-halla-garden/deluxe-room.png',
+    ],
+    roomImageSet: [
+      '/stayloop/promotions/rooms/jeju-halla-garden-room.png',
+      '/stayloop/promotions/galleries/jeju-halla-garden/deluxe-room.png',
+    ],
     distanceText: '제주공항에서 차량 12분',
     badge: '무료 취소',
     description: '공항과 도심 접근성이 좋아 첫날과 마지막 날 숙박에 편리합니다.',
@@ -521,12 +576,12 @@ const seeds: HotelSeed[] = [
     mapPosition: { x: 62, y: 58 },
   },
   {
-    id: 'tokyo-urban-terrace-017',
-    name: 'Tokyo Urban Terrace',
-    destinationId: 'tokyo',
-    destination: '도쿄',
-    neighborhood: '신주쿠',
-    address: 'Tokyo Shinjuku-ku 3-8-2',
+    id: 'okinawa-naha-terrace-017',
+    name: 'Naha Island Terrace',
+    destinationId: 'okinawa',
+    destination: '오키나와',
+    neighborhood: '나하',
+    address: 'Okinawa Naha-shi Kumoji 3-8-2',
     starRating: 4,
     guestRating: 9.0,
     reviewCount: 1228,
@@ -538,19 +593,30 @@ const seeds: HotelSeed[] = [
     propertyType: 'hotel',
     images: [],
     imageStart: 16,
-    distanceText: '신주쿠역에서 도보 9분',
+    imageSet: [
+      '/stayloop/promotions/okinawa-naha-island-terrace.png',
+      '/stayloop/promotions/rooms/okinawa-naha-island-room.png',
+      '/stayloop/promotions/galleries/okinawa-naha-island/lobby.png',
+      '/stayloop/promotions/galleries/okinawa-naha-island/rooftop-bar.png',
+      '/stayloop/promotions/galleries/okinawa-naha-island/deluxe-room.png',
+    ],
+    roomImageSet: [
+      '/stayloop/promotions/rooms/okinawa-naha-island-room.png',
+      '/stayloop/promotions/galleries/okinawa-naha-island/deluxe-room.png',
+    ],
+    distanceText: '국제거리에서 도보 7분',
     badge: '회원가',
-    description: '도쿄 주요 노선 접근성이 좋은 세련된 도심 호텔입니다.',
-    highlights: ['역세권 위치', '테라스 라운지', '다국어 프런트', '쇼핑 지역 인접'],
+    description: '나하 도심과 국제거리를 편리하게 이용할 수 있는 오키나와 시티 리조트입니다.',
+    highlights: ['국제거리 인접', '류큐 디자인 라운지', '다국어 프런트', '나하 공항 접근성'],
     mapPosition: { x: 45, y: 39 },
   },
   {
-    id: 'tokyo-ginza-light-018',
-    name: 'Ginza Light Hotel',
-    destinationId: 'tokyo',
-    destination: '도쿄',
-    neighborhood: '긴자',
-    address: 'Tokyo Chuo-ku Ginza 6-2-9',
+    id: 'okinawa-chatan-sunset-018',
+    name: 'Chatan Sunset Bay Resort',
+    destinationId: 'okinawa',
+    destination: '오키나와',
+    neighborhood: '차탄',
+    address: 'Okinawa Nakagami-gun Chatan 6-2-9',
     starRating: 5,
     guestRating: 9.4,
     reviewCount: 806,
@@ -562,19 +628,30 @@ const seeds: HotelSeed[] = [
     propertyType: 'hotel',
     images: [],
     imageStart: 17,
-    distanceText: '긴자역에서 도보 5분',
+    imageSet: [
+      OKINAWA_RESORT_EXTERIOR,
+      '/stayloop/promotions/rooms/okinawa-chatan-sunset-room.png',
+      '/stayloop/promotions/galleries/okinawa-chatan-sunset/pool-deck.png',
+      '/stayloop/promotions/galleries/okinawa-chatan-sunset/spa-lounge.png',
+      '/stayloop/promotions/galleries/okinawa-chatan-sunset/deluxe-room.png',
+    ],
+    roomImageSet: [
+      '/stayloop/promotions/rooms/okinawa-chatan-sunset-room.png',
+      '/stayloop/promotions/galleries/okinawa-chatan-sunset/deluxe-room.png',
+    ],
+    distanceText: '아메리칸 빌리지에서 도보 5분',
     badge: '인기 숙소',
-    description: '쇼핑과 미식을 즐기기 좋은 긴자 중심의 프리미엄 호텔입니다.',
-    highlights: ['프리미엄 다이닝', '고층 도시 전망', '스파 시설', '컨시어지 서비스'],
+    description: '차탄의 노을과 에메랄드빛 바다를 조망하는 프리미엄 해변 리조트입니다.',
+    highlights: ['선셋 오션뷰', '해변 산책로', '스파 시설', '아메리칸 빌리지 인접'],
     mapPosition: { x: 59, y: 47 },
   },
   {
-    id: 'osaka-namba-comfort-019',
-    name: 'Osaka Namba Comfort Hotel',
-    destinationId: 'osaka',
-    destination: '오사카',
-    neighborhood: '난바',
-    address: 'Osaka Chuo-ku Namba 2-4-6',
+    id: 'okinawa-onna-coral-019',
+    name: 'Onna Coral Comfort Hotel',
+    destinationId: 'okinawa',
+    destination: '오키나와',
+    neighborhood: '온나손',
+    address: 'Okinawa Kunigami-gun Onna 2-4-6',
     starRating: 4,
     guestRating: 8.7,
     reviewCount: 918,
@@ -586,19 +663,30 @@ const seeds: HotelSeed[] = [
     propertyType: 'hotel',
     images: [],
     imageStart: 18,
-    distanceText: '난바역에서 도보 4분',
+    imageSet: [
+      '/stayloop/promotions/okinawa-onna-coral-comfort.png',
+      '/stayloop/promotions/rooms/okinawa-onna-coral-room.png',
+      '/stayloop/promotions/galleries/okinawa-onna-coral/coral-pool.png',
+      '/stayloop/promotions/galleries/okinawa-onna-coral/breakfast-lounge.png',
+      '/stayloop/promotions/galleries/okinawa-onna-coral/deluxe-room.png',
+    ],
+    roomImageSet: [
+      '/stayloop/promotions/rooms/okinawa-onna-coral-room.png',
+      '/stayloop/promotions/galleries/okinawa-onna-coral/deluxe-room.png',
+    ],
+    distanceText: '만자모에서 차량 8분',
     badge: '무료 취소',
-    description: '도톤보리와 난바 이동이 편한 오사카 도심 호텔입니다.',
-    highlights: ['난바 중심', '쇼핑 거리 접근', '한국어 안내 일부 지원', '실속형 객실'],
+    description: '온나손의 코랄 비치와 만자모 여행에 편리한 실속형 오션뷰 호텔입니다.',
+    highlights: ['코랄 비치 인접', '만자모 접근', '한국어 안내 일부 지원', '오션뷰 객실'],
     mapPosition: { x: 52, y: 50 },
   },
   {
-    id: 'bangkok-river-sky-020',
-    name: 'Bangkok River Sky Resort',
-    destinationId: 'bangkok',
-    destination: '방콕',
-    neighborhood: '리버사이드',
-    address: 'Bangkok Charoen Krung Road 219',
+    id: 'okinawa-ishigaki-sky-020',
+    name: 'Ishigaki Blue Sky Resort',
+    destinationId: 'okinawa',
+    destination: '오키나와',
+    neighborhood: '이시가키',
+    address: 'Okinawa Ishigaki-shi Kabira 219',
     starRating: 5,
     guestRating: 9.2,
     reviewCount: 1374,
@@ -610,34 +698,50 @@ const seeds: HotelSeed[] = [
     propertyType: 'resort',
     images: [],
     imageStart: 19,
-    distanceText: '짜오프라야 강변',
+    imageSet: [
+      '/stayloop/promotions/okinawa-ishigaki-blue-sky.png',
+      '/stayloop/promotions/rooms/okinawa-ishigaki-blue-room.png',
+      '/stayloop/promotions/galleries/okinawa-ishigaki-blue/beach-cabana.png',
+      '/stayloop/promotions/galleries/okinawa-ishigaki-blue/spa-lounge.png',
+      '/stayloop/promotions/galleries/okinawa-ishigaki-blue/deluxe-room.png',
+    ],
+    roomImageSet: [
+      '/stayloop/promotions/rooms/okinawa-ishigaki-blue-room.png',
+      '/stayloop/promotions/galleries/okinawa-ishigaki-blue/deluxe-room.png',
+    ],
+    distanceText: '카비라만에서 차량 9분',
     badge: '오늘의 특가',
-    description: '루프톱 수영장과 리버뷰 레스토랑을 갖춘 방콕 휴양형 숙소입니다.',
-    highlights: ['루프톱 풀', '리버뷰 다이닝', '스파 패키지', '관광지 셔틀'],
+    description: '이시가키의 투명한 바다와 섬 풍경을 만끽할 수 있는 휴양형 리조트입니다.',
+    highlights: ['코랄 리프 투어', '카비라만 전망', '스파 패키지', '공항 셔틀'],
     mapPosition: { x: 48, y: 57 },
   },
 ];
 
-function rotateImages(images: string[], start: number, length: number): string[] {
-  return Array.from({ length }, (_, index) => images[(start + index) % images.length]);
-}
-
-function getHotelImages(seed: HotelSeed): string[] {
-  return rotateImages(HOTEL_IMAGES, seed.imageStart, 5);
-}
-
 function buildHotel(seed: HotelSeed): Hotel {
-  const images = getHotelImages(seed);
+  const images = seed.imageSet
+    ? Array.from({ length: 5 }, (_, index) => seed.imageSet![index % seed.imageSet!.length])
+    : Array.from({ length: 5 }, (_, index) => HOTEL_IMAGES[(seed.imageStart + index) % HOTEL_IMAGES.length]);
 
   return {
     ...seed,
     images,
     policies: defaultPolicies,
     reviewBreakdown: makeBreakdown(seed.guestRating),
-    rooms: makeRooms(seed.id, seed.pricePerNight, seed.refundable, seed.imageStart),
+    rooms: makeRooms(seed.id, seed.pricePerNight, seed.refundable, seed.imageStart, seed.roomImageSet),
     reviews: makeReviews(seed.id, seed.neighborhood, seed.guestRating),
   };
 }
+
+export const BLACK_FRIDAY_HOTEL_IDS = new Set([
+  'jeju-ocean-breeze-006',
+  'jeju-aewol-sunset-007',
+  'jeju-seongsan-morning-008',
+  'jeju-halla-garden-009',
+  'okinawa-naha-terrace-017',
+  'okinawa-chatan-sunset-018',
+  'okinawa-onna-coral-019',
+  'okinawa-ishigaki-sky-020',
+]);
 
 export const hotels: Hotel[] = seeds.map(buildHotel);
 
