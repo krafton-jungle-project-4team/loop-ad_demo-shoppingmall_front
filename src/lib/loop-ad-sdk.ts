@@ -58,6 +58,21 @@ type LoopAdIdentity = {
   sessionId: string;
 };
 
+type LoopAdPrivacyIdentity = {
+  subjectId: string;
+  sessionId: string;
+  namespace: string;
+  keyVersion: string;
+};
+
+type LoopAdPrivacyPocConfig = {
+  collectorUrl: string;
+  identityNamespace: string;
+  identityKeyVersion: string;
+  policyVersion: string;
+  purposeIds: string[];
+};
+
 type LoopAdEventClient = {
   track(
     eventName: string,
@@ -68,6 +83,10 @@ type LoopAdEventClient = {
     },
   ): void;
   setIdentity(identity: LoopAdIdentity, context?: LoopAdEventContext | null): void;
+  setPrivacyIdentity(
+    identity: LoopAdPrivacyIdentity,
+    context?: LoopAdEventContext | null,
+  ): void;
   clearIdentity(): void;
   destroy(): void;
 };
@@ -76,6 +95,15 @@ type LoopAdEventSdkGlobal = {
   init(options: {
     connectionUrl: string;
     identity?: LoopAdIdentity | null;
+    privacy?: {
+      collectorUrl: string;
+      identity?: LoopAdPrivacyIdentity | null;
+      consent: {
+        status: "granted";
+        policyVersion: string;
+        purposeIds: string[];
+      };
+    } | null;
     debug?: boolean | null;
     autoTrackPageViews?: boolean | null;
     collectDomEvents?: boolean | null;
@@ -136,7 +164,8 @@ type AdvertisementSdkGlobal = {
   init(options: {
     apiBaseUrl: string;
     projectId: string;
-    userId: string;
+    userId?: string;
+    subjectId?: string;
     promotionRunId: string;
     debug?: boolean | null;
   }): AdvertisementClient;
@@ -147,6 +176,7 @@ declare global {
   interface Window {
     LoopAdEventSDK?: LoopAdEventSdkGlobal;
     LoopAdAdvertisementSDK?: AdvertisementSdkGlobal;
+    LoopAdPrivacyPocConfig?: LoopAdPrivacyPocConfig;
   }
 }
 
@@ -209,9 +239,21 @@ export function initLoopAdEventSdk(): Promise<LoopAdEventClient> {
           throw new Error("LoopAdEventSDK global was not registered.");
         }
 
+        const privacyConfig = getPrivacyPocConfig();
         const client = await sdk.init({
           connectionUrl: loopAdSdkConfig.connectionUrl,
-          identity: getDemoIdentity(),
+          identity: privacyConfig ? null : getDemoIdentity(),
+          privacy: privacyConfig
+            ? {
+                collectorUrl: privacyConfig.collectorUrl,
+                identity: getDemoPrivacyIdentity(privacyConfig),
+                consent: {
+                  status: "granted",
+                  policyVersion: privacyConfig.policyVersion,
+                  purposeIds: [...privacyConfig.purposeIds],
+                },
+              }
+            : null,
           debug: loopAdSdkConfig.debug,
           autoTrackPageViews: false,
           collectDomEvents: true,
@@ -321,7 +363,16 @@ export function setLoopAdDemoUserIdentity(): void {
         return;
       }
 
-      client.setIdentity(identity, createLoopAdSharedContext());
+      const privacyConfig = getPrivacyPocConfig();
+      if (privacyConfig) {
+        const privacyIdentity = getDemoPrivacyIdentity(privacyConfig);
+        if (!privacyIdentity) {
+          return;
+        }
+        client.setPrivacyIdentity(privacyIdentity, createLoopAdSharedContext());
+      } else {
+        client.setIdentity(identity, createLoopAdSharedContext());
+      }
       resetLoopAdAdvertisementSdk();
       trackLoopAdPageView();
     })
@@ -376,10 +427,15 @@ function initLoopAdAdvertisementSdk(): Promise<AdvertisementClient | null> {
           return null;
         }
 
+        const privacyConfig = getPrivacyPocConfig();
         return sdk.init({
           apiBaseUrl: loopAdSdkConfig.advertisementApiBaseUrl,
           projectId: loopAdSdkConfig.projectId,
-          userId: currentIdentity.userId,
+          ...(privacyConfig
+            ? {
+                subjectId: getDemoPrivacyIdentity(privacyConfig)?.subjectId,
+              }
+            : { userId: currentIdentity.userId }),
           promotionRunId,
           debug: loopAdSdkConfig.debug,
         });
@@ -501,6 +557,46 @@ export function getDemoIdentity(): LoopAdIdentity | null {
   return {
     userId: profile.userId,
     sessionId: getStoredDemoSessionId(),
+  };
+}
+
+export function getDemoPrivacyIdentity(
+  config: LoopAdPrivacyPocConfig,
+): LoopAdPrivacyIdentity | null {
+  const profile = getSelectedDemoUserProfile();
+  if (!profile) {
+    return null;
+  }
+  return {
+    subjectId: profile.privacySubjectId,
+    sessionId:
+      typeof window === "undefined"
+        ? "demo-session-browser-only"
+        : getStoredDemoSessionId(),
+    namespace: config.identityNamespace,
+    keyVersion: config.identityKeyVersion,
+  };
+}
+
+function getPrivacyPocConfig(): LoopAdPrivacyPocConfig | null {
+  if (typeof window === "undefined" || !window.LoopAdPrivacyPocConfig) {
+    return null;
+  }
+  const config = window.LoopAdPrivacyPocConfig;
+  if (
+    !isNonEmptyString(config.collectorUrl) ||
+    !isNonEmptyString(config.identityNamespace) ||
+    !isNonEmptyString(config.identityKeyVersion) ||
+    !isNonEmptyString(config.policyVersion) ||
+    !Array.isArray(config.purposeIds) ||
+    config.purposeIds.length === 0 ||
+    config.purposeIds.some((purposeId) => !isNonEmptyString(purposeId))
+  ) {
+    throw new Error("Loop Ad privacy PoC config is invalid.");
+  }
+  return {
+    ...config,
+    purposeIds: [...config.purposeIds],
   };
 }
 
