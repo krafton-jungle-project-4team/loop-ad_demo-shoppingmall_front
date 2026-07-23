@@ -10,6 +10,8 @@ describe("demo user profiles", () => {
     expect(demoUserProfiles).toHaveLength(4);
     expect(getDemoUserProfileByType("seoul-female-20s")).toMatchObject({
       userId: "demo-user-seoul-female-20s",
+      privacySubjectId:
+        "sub_423fda0c41fee11cbc38d7b8cce21aa0d3a04169f52f744af71ace5ccb59325b",
       ageGroup: "20s",
       gender: "female",
       region: "서울",

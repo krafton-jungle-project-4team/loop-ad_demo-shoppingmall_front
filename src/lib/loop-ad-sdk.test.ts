@@ -170,6 +170,55 @@ describe("getDemoIdentity", () => {
     expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
   });
 
+  it("uses only the pseudonymous identity when the privacy PoC is explicitly configured", async () => {
+    const { localStorage } = stubBrowserStorage();
+    localStorage.setItem(PROFILE_STORAGE_KEY, "seoul-female-20s");
+    const init = vi.fn(async () => ({
+      track: vi.fn(),
+      setIdentity: vi.fn(),
+      setPrivacyIdentity: vi.fn(),
+      clearIdentity: vi.fn(),
+      destroy: vi.fn(),
+    }));
+
+    Object.assign(window, {
+      LoopAdPrivacyPocConfig: {
+        collectorUrl: "https://connector.customer.example/private/v2/events",
+        identityNamespace: "customer-user",
+        identityKeyVersion: "customer-key.v1",
+        policyVersion: "privacy-policy.v1",
+        purposeIds: ["personalized-advertising"],
+      },
+      LoopAdEventSDK: {
+        init,
+        version: "test",
+      },
+    });
+
+    await initLoopAdEventSdk();
+
+    expect(init).toHaveBeenCalledWith(
+      expect.objectContaining({
+        identity: null,
+        privacy: {
+          collectorUrl: "https://connector.customer.example/private/v2/events",
+          identity: {
+            subjectId:
+              "sub_423fda0c41fee11cbc38d7b8cce21aa0d3a04169f52f744af71ace5ccb59325b",
+            sessionId: "demo-session-uuid-1",
+            namespace: "customer-user",
+            keyVersion: "customer-key.v1",
+          },
+          consent: {
+            status: "granted",
+            policyVersion: "privacy-policy.v1",
+            purposeIds: ["personalized-advertising"],
+          },
+        },
+      }),
+    );
+  });
+
   it("uses the selected demo profile userId and stores sessionId", () => {
     const { localStorage, sessionStorage } = stubBrowserStorage();
     localStorage.setItem(PROFILE_STORAGE_KEY, "seoul-female-20s");
