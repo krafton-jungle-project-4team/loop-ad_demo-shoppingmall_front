@@ -17,6 +17,11 @@ import {
 } from '../data/hotels';
 import type { Hotel } from '../types/hotel';
 import type { Filters, PriceBucket, SortOption } from '../types/search';
+import {
+  getSortOptionForDeal,
+  sortHotels,
+  type SortSelection,
+} from '../utils/hotelSorting';
 import { getDestinationName } from '../utils/searchParams';
 import { createSearchParams, parseSearchParams } from '../utils/searchParams';
 
@@ -47,24 +52,6 @@ function matchesFilters(hotel: Hotel, filters: Filters): boolean {
   const matchesType = filters.propertyTypes.length === 0 || filters.propertyTypes.includes(hotel.propertyType);
 
   return matchesPrice && matchesRefund && matchesPayLater && matchesStars && matchesRating && matchesAmenities && matchesType;
-}
-
-function sortHotels(items: Hotel[], sortOption: SortOption, deal?: string): Hotel[] {
-  return [...items].sort((left, right) => {
-    if (deal === 'summer' || deal === SUMMER_LASTCALL_DEAL) {
-      const leftDealScore = left.originalPrice ? 1 : 0;
-      const rightDealScore = right.originalPrice ? 1 : 0;
-
-      if (leftDealScore !== rightDealScore) return rightDealScore - leftDealScore;
-    }
-
-    if (sortOption === 'priceLow') return left.pricePerNight - right.pricePerNight;
-    if (sortOption === 'ratingHigh') return right.guestRating - left.guestRating;
-    if (sortOption === 'starHigh') return right.starRating - left.starRating;
-    if (sortOption === 'reviewMany') return right.reviewCount - left.reviewCount;
-
-    return right.guestRating * 100 + right.reviewCount / 100 - (left.guestRating * 100 + left.reviewCount / 100);
-  });
 }
 
 function getResultsEyebrow(deal: string | undefined, destinationName: string): string {
@@ -114,11 +101,12 @@ function ResultsPromotionBanner() {
 
 export function SearchResultsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [sortOption, setSortOption] = useState<SortOption>('recommended');
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const searchState = parseSearchParams(searchParams);
   const { deal, destination } = searchState;
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [sortSelection, setSortSelection] = useState<SortSelection | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const sortOption = getSortOptionForDeal(deal, sortSelection);
   const destinationName = getDestinationName(destination);
   const isPromotionDeal = deal === 'summer' || deal === SUMMER_LASTCALL_DEAL;
 
@@ -147,7 +135,10 @@ export function SearchResultsPage() {
                 <Filter size={17} aria-hidden="true" />
                 필터
               </Button>
-              <SortDropdown value={sortOption} onChange={setSortOption} />
+              <SortDropdown
+                value={sortOption}
+                onChange={(option) => setSortSelection({ deal, option })}
+              />
             </div>
           </div>
 

@@ -22,4 +22,4 @@ export type Filters = {
   propertyTypes: PropertyType[];
 };
 
-export type SortOption = 'recommended' | 'priceLow' | 'ratingHigh' | 'starHigh' | 'reviewMany';
+export type SortOption = 'recommended' | 'priceLow' | 'priceHigh' | 'ratingHigh' | 'starHigh' | 'reviewMany';

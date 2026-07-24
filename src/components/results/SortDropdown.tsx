@@ -8,6 +8,7 @@ type SortDropdownProps = {
 const sortOptions: Array<{ value: SortOption; label: string }> = [
   { value: 'recommended', label: '추천순' },
   { value: 'priceLow', label: '낮은 가격순' },
+  { value: 'priceHigh', label: '높은 가격순' },
   { value: 'ratingHigh', label: '높은 평점순' },
   { value: 'starHigh', label: '성급 높은순' },
   { value: 'reviewMany', label: '리뷰 많은순' },
