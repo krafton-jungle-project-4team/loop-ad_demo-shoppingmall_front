@@ -94,8 +94,19 @@ function createCampaignRouteEvent(
   const params = parsedUrl.searchParams;
   const previousParams = parsedPreviousUrl?.searchParams ?? null;
   const attributionParams = chooseAttributionParams(params, previousParams);
+  const inheritedSameRouteAttribution =
+    attributionParams === previousParams &&
+    parsedPreviousUrl?.pathname === parsedUrl.pathname;
 
   if (!hasCampaignSignal(params) && !attributionParams) {
+    return null;
+  }
+
+  if (
+    parsedPreviousUrl &&
+    !hasCampaignSignalExceptDeal(params) &&
+    !inheritedSameRouteAttribution
+  ) {
     return null;
   }
 
@@ -197,6 +208,12 @@ function hasCampaignSignal(params: URLSearchParams): boolean {
   return CAMPAIGN_PARAM_KEYS.some((key) => Boolean(textParam(params, key)));
 }
 
+function hasCampaignSignalExceptDeal(params: URLSearchParams): boolean {
+  return CAMPAIGN_PARAM_KEYS.some(
+    (key) => key !== "deal" && Boolean(textParam(params, key)),
+  );
+}
+
 function chooseAttributionParams(
   params: URLSearchParams,
   previousParams: URLSearchParams | null,
@@ -243,7 +260,7 @@ function createCampaignSignature(url: URL, previousUrl: URL | null): string {
     }
   }
 
-  return `${url.pathname}?${signatureParams.toString()}`;
+  return signatureParams.toString();
 }
 
 function textParam(

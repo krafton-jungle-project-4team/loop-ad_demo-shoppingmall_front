@@ -1,4 +1,5 @@
 import { CalendarDays, UsersRound } from 'lucide-react';
+import { SUMMER_LASTCALL_DEAL } from '../../data/hotels';
 import type { Hotel, Room } from '../../types/hotel';
 import type { SearchState } from '../../types/search';
 import { formatCurrency, formatDateRange } from '../../utils/format';
@@ -12,9 +13,12 @@ type BookingPanelProps = {
 };
 
 export function BookingPanel({ hotel, selectedRoom, searchState }: BookingPanelProps) {
+  const isLastCallDeal = searchState.deal === SUMMER_LASTCALL_DEAL;
+  const pricePerNight = selectedRoom?.pricePerNight || hotel.pricePerNight;
+  const originalPrice = selectedRoom?.originalPrice || hotel.originalPrice;
   const price = calculatePrice({
-    pricePerNight: selectedRoom?.pricePerNight || hotel.pricePerNight,
-    originalPrice: selectedRoom?.originalPrice || hotel.originalPrice,
+    pricePerNight,
+    originalPrice,
     checkIn: searchState.checkIn,
     checkOut: searchState.checkOut,
     rooms: searchState.rooms,
@@ -22,8 +26,15 @@ export function BookingPanel({ hotel, selectedRoom, searchState }: BookingPanelP
 
   return (
     <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-card">
-      <p className="text-sm font-semibold text-ink-500">1박 최저가</p>
-      <p className="mt-1 text-3xl font-bold text-ink-900">{formatCurrency(selectedRoom?.pricePerNight || hotel.pricePerNight)}</p>
+      {isLastCallDeal && originalPrice ? (
+        <p className="text-sm text-ink-500">
+          기존 프로모션가 <span className="line-through">{formatCurrency(originalPrice)}</span>
+        </p>
+      ) : null}
+      <p className={isLastCallDeal ? 'text-sm font-semibold text-rose-600' : 'text-sm font-semibold text-ink-500'}>
+        {isLastCallDeal ? 'D-3 최종 할인가 · 1박' : '1박 최저가'}
+      </p>
+      <p className={isLastCallDeal ? 'mt-1 text-3xl font-bold text-rose-700' : 'mt-1 text-3xl font-bold text-ink-900'}>{formatCurrency(pricePerNight)}</p>
       <div className="mt-5 space-y-3 rounded-lg bg-slate-50 p-4">
         <div className="flex items-start gap-3 text-sm text-ink-700">
           <CalendarDays size={17} className="mt-0.5 text-loop-600" aria-hidden="true" />

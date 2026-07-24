@@ -1,6 +1,6 @@
 import { Heart, MapPin, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { badgeTone } from '../../data/hotels';
+import { SUMMER_LASTCALL_DEAL, badgeTone } from '../../data/hotels';
 import type { Hotel } from '../../types/hotel';
 import type { SearchState } from '../../types/search';
 import { cn } from '../../utils/cn';
@@ -19,6 +19,7 @@ type HotelCardProps = {
 };
 
 export function HotelCard({ hotel, searchState }: HotelCardProps) {
+  const isLastCallDeal = searchState.deal === SUMMER_LASTCALL_DEAL;
   const price = calculatePrice({
     pricePerNight: hotel.pricePerNight,
     originalPrice: hotel.originalPrice,
@@ -42,9 +43,10 @@ export function HotelCard({ hotel, searchState }: HotelCardProps) {
             event.currentTarget.style.display = 'none';
           }}
         />
-        {hotel.badge ? (
-          <span className={cn('absolute left-3 top-3 rounded-md px-2.5 py-1 text-xs font-bold', badgeTone[hotel.badge])}>{hotel.badge}</span>
-        ) : null}
+        <span className="absolute left-3 top-3 flex flex-col items-start gap-2">
+          {isLastCallDeal ? <span className="rounded-md bg-rose-600 px-2.5 py-1 text-xs font-bold text-white">D-3 추가 할인</span> : null}
+          {hotel.badge ? <span className={cn('rounded-md px-2.5 py-1 text-xs font-bold', badgeTone[hotel.badge])}>{hotel.badge}</span> : null}
+        </span>
       </Link>
 
       <div className="grid gap-5 p-4 md:grid-cols-[1fr_190px]">
@@ -83,9 +85,16 @@ export function HotelCard({ hotel, searchState }: HotelCardProps) {
             <Heart size={18} aria-hidden="true" />
           </button>
           <div className="mt-6 text-right md:mt-auto">
-            {hotel.originalPrice ? <p className="text-sm text-ink-500 line-through">{formatCurrency(hotel.originalPrice)}</p> : null}
-            <p className="text-sm font-semibold text-ink-500">1박</p>
-            <p className="text-2xl font-bold text-ink-900">{formatCurrency(hotel.pricePerNight)}</p>
+            {hotel.originalPrice && isLastCallDeal ? (
+              <p className="text-sm text-ink-500">
+                기존 프로모션가 <span className="line-through">{formatCurrency(hotel.originalPrice)}</span>
+              </p>
+            ) : null}
+            {hotel.originalPrice && !isLastCallDeal ? <p className="text-sm text-ink-500 line-through">{formatCurrency(hotel.originalPrice)}</p> : null}
+            <p className={cn('text-sm font-semibold', isLastCallDeal ? 'text-rose-600' : 'text-ink-500')}>
+              {isLastCallDeal ? 'D-3 최종 할인가 · 1박' : '1박'}
+            </p>
+            <p className={cn('text-2xl font-bold', isLastCallDeal ? 'text-rose-700' : 'text-ink-900')}>{formatCurrency(hotel.pricePerNight)}</p>
             <p className="mt-1 text-sm text-ink-500">총 {formatCurrency(price.total)}</p>
             <p className="text-xs text-ink-500">세금 및 수수료 포함</p>
             <Link className={buttonClassName({ className: 'mt-4 w-full' })} to={detailPath} onClick={handleHotelClick}>

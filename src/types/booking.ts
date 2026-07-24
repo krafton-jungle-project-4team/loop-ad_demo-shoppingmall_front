@@ -12,6 +12,7 @@ export type StoredBooking = {
   adults: number;
   children: number;
   rooms: number;
+  deal?: string;
   total: number;
   paymentOption: 'now' | 'later';
   cancellation: string;

@@ -1,5 +1,6 @@
 import type { Hotel, Room } from '../../types/hotel';
 import type { SearchState } from '../../types/search';
+import { SUMMER_LASTCALL_DEAL } from '../../data/hotels';
 import { formatCurrency } from '../../utils/format';
 import { calculatePrice } from '../../utils/pricing';
 
@@ -10,6 +11,7 @@ type PriceSummaryProps = {
 };
 
 export function PriceSummary({ hotel, room, searchState }: PriceSummaryProps) {
+  const isLastCallDeal = searchState.deal === SUMMER_LASTCALL_DEAL;
   const price = calculatePrice({
     pricePerNight: room.pricePerNight,
     originalPrice: room.originalPrice,
@@ -34,6 +36,11 @@ export function PriceSummary({ hotel, room, searchState }: PriceSummaryProps) {
           <p className="font-bold text-ink-900">{hotel.name}</p>
           <p className="mt-1 text-sm text-ink-500">{room.name}</p>
           <p className="mt-1 text-sm text-ink-500">{price.nights}박 · 객실 {searchState.rooms}개</p>
+          {isLastCallDeal && room.originalPrice ? (
+            <p className="mt-2 text-xs text-ink-500">
+              기존 프로모션가 <span className="line-through">{formatCurrency(room.originalPrice)}</span> / 1박
+            </p>
+          ) : null}
         </div>
       </div>
       <dl className="mt-4 space-y-3 text-sm">
@@ -45,7 +52,7 @@ export function PriceSummary({ hotel, room, searchState }: PriceSummaryProps) {
         </div>
         {price.discount ? (
           <div className="flex justify-between gap-3 text-emerald-700">
-            <dt>할인 금액</dt>
+            <dt>{isLastCallDeal ? 'D-3 추가 할인' : '할인 금액'}</dt>
             <dd>-{formatCurrency(price.discount)}</dd>
           </div>
         ) : null}

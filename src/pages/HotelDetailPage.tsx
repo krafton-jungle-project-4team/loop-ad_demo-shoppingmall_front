@@ -13,7 +13,7 @@ import { PolicySection } from '../components/hotel/PolicySection';
 import { RatingBadge } from '../components/hotel/RatingBadge';
 import { ReviewSummary } from '../components/hotel/ReviewSummary';
 import { RoomCard } from '../components/hotel/RoomCard';
-import { hotels } from '../data/hotels';
+import { SUMMER_LASTCALL_DEAL, getHotelForDeal } from '../data/hotels';
 import { formatCurrency, formatDateRange, getStars } from '../utils/format';
 import { calculatePrice } from '../utils/pricing';
 import { trackHotelView } from '../utils/booking-events';
@@ -33,7 +33,8 @@ export function HotelDetailPage() {
   const [searchParams] = useSearchParams();
   const searchState = parseSearchParams(searchParams);
   const { adults, checkIn, checkOut, children, deal, destination, rooms } = searchState;
-  const hotel = hotels.find((item) => item.id === hotelId);
+  const hotel = getHotelForDeal(hotelId ?? '', deal);
+  const isLastCallDeal = deal === SUMMER_LASTCALL_DEAL;
 
   useEffect(() => {
     if (!hotel) {
@@ -88,6 +89,7 @@ export function HotelDetailPage() {
             <div>
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <span className="text-sm font-semibold text-amber-500">{getStars(hotel.starRating)}</span>
+                {isLastCallDeal ? <Badge tone="rose">D-3 추가 할인</Badge> : null}
                 {hotel.badge ? <Badge>{hotel.badge}</Badge> : null}
                 {hotel.refundable ? <Badge tone="green">무료 취소 가능</Badge> : null}
               </div>
@@ -193,8 +195,15 @@ export function HotelDetailPage() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white p-3 shadow-lift lg:hidden">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
           <div>
+            {isLastCallDeal && firstRoom.originalPrice ? (
+              <p className="text-xs text-ink-500">
+                기존 프로모션가 <span className="line-through">{formatCurrency(firstRoom.originalPrice)}</span>
+              </p>
+            ) : null}
             <p className="text-xs font-semibold text-ink-500">총 {formatCurrency(price.total)}</p>
-            <p className="text-lg font-bold text-ink-900">{formatCurrency(firstRoom.pricePerNight)} / 1박</p>
+            <p className={isLastCallDeal ? 'text-lg font-bold text-rose-700' : 'text-lg font-bold text-ink-900'}>
+              {formatCurrency(firstRoom.pricePerNight)} / 1박
+            </p>
           </div>
           <a className={buttonClassName({})} href="#rooms">
             객실 선택

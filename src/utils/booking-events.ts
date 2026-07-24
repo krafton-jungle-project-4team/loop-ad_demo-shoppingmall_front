@@ -123,6 +123,7 @@ export function trackBookingComplete(booking: StoredBooking): void {
       children: booking.children,
       rooms: booking.rooms,
       payment_option: booking.paymentOption,
+      ...(booking.deal ? { deal: booking.deal } : {}),
       booking_value: booking.total,
       inventory_status: INVENTORY_STATUS_AVAILABLE,
       is_booking: 1,
