@@ -2,6 +2,7 @@ import { CalendarDays, MapPin, Minus, Plus, Search, UsersRound } from 'lucide-re
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { destinations } from '../../data/destinations';
+import { SUMMER_LASTCALL_DEAL } from '../../data/hotels';
 import type { SearchState } from '../../types/search';
 import { cn } from '../../utils/cn';
 import { trackSearchSubmit } from '../../utils/booking-events';
@@ -58,7 +59,7 @@ export function SearchBox({ variant = 'hero', defaultValues = DEFAULT_SEARCH_STA
     setState((current) => ({
       ...current,
       [key]: value,
-      deal: key === 'destination' ? undefined : current.deal,
+      deal: key === 'destination' && current.deal !== SUMMER_LASTCALL_DEAL ? undefined : current.deal,
     }));
   };
 

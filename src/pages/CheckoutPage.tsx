@@ -9,7 +9,7 @@ import { PriceSummary } from '../components/checkout/PriceSummary';
 import { Footer } from '../components/layout/Footer';
 import { Header } from '../components/layout/Header';
 import { PageContainer } from '../components/layout/PageContainer';
-import { hotels } from '../data/hotels';
+import { SUMMER_LASTCALL_DEAL, getHotelForDeal } from '../data/hotels';
 import type { StoredBooking } from '../types/booking';
 import { cn } from '../utils/cn';
 import { createBookingNumber, saveLastBooking } from '../utils/bookingStorage';
@@ -32,10 +32,10 @@ export function CheckoutPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const searchState = parseSearchParams(searchParams);
-  const hotel = hotels.find((item) => item.id === hotelId);
+  const { adults, checkIn, checkOut, children, deal, destination, rooms } = searchState;
+  const hotel = getHotelForDeal(hotelId ?? '', deal);
   const roomId = searchParams.get('roomId') || 'standard-double';
   const room = hotel?.rooms.find((item) => item.id === roomId) || hotel?.rooms[0];
-  const { adults, checkIn, checkOut, children, deal, destination, rooms } = searchState;
   const [guestForm, setGuestForm] = useState<GuestForm>({ name: '', email: '', phone: '', request: '' });
   const [paymentOption, setPaymentOption] = useState<'now' | 'later'>('now');
   const [errors, setErrors] = useState<FormErrors>({});
@@ -109,6 +109,7 @@ export function CheckoutPage() {
       adults: searchState.adults,
       children: searchState.children,
       rooms: searchState.rooms,
+      deal: searchState.deal,
       total: price.total,
       paymentOption,
       cancellation: hotel.policies.cancellation,
@@ -188,6 +189,7 @@ export function CheckoutPage() {
                   />
                   <div>
                     <div className="flex flex-wrap gap-2">
+                      {deal === SUMMER_LASTCALL_DEAL ? <Badge tone="rose">D-3 추가 할인</Badge> : null}
                       <Badge tone="green">무료 취소 가능</Badge>
                       {hotel.payLater ? <Badge>숙소에서 결제 가능</Badge> : null}
                     </div>

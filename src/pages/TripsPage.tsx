@@ -50,6 +50,9 @@ export function TripsPage() {
   const [storedBooking, setStoredBooking] = useState<StoredBooking | null>(() => getLastBooking());
   const booking = useMemo(() => storedBooking || createFallbackBooking(), [storedBooking]);
   const hotel = hotels.find((item) => item.id === booking.hotelId) || hotels[0];
+  const hotelDetailPath = booking.deal
+    ? `/hotel/${booking.hotelId}?deal=${encodeURIComponent(booking.deal)}`
+    : `/hotel/${booking.hotelId}`;
   const isCancelled = booking.status === 'cancelled';
 
   function handleBookingCancel() {
@@ -109,7 +112,7 @@ export function TripsPage() {
               </div>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Link className={buttonClassName({ className: 'flex-1' })} to={`/hotel/${booking.hotelId}`}>
+                <Link className={buttonClassName({ className: 'flex-1' })} to={hotelDetailPath}>
                   예약 상세 보기
                 </Link>
                 <Link className={buttonClassName({ variant: 'outline', className: 'flex-1' })} to="/">

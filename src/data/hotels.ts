@@ -743,7 +743,49 @@ export const BLACK_FRIDAY_HOTEL_IDS = new Set([
   'okinawa-ishigaki-sky-020',
 ]);
 
+export const SUMMER_LASTCALL_DEAL = 'summer-lastcall';
+
+export const SUMMER_LASTCALL_HOTEL_IDS = new Set([
+  'jeju-ocean-breeze-006',
+  'jeju-aewol-sunset-007',
+  'okinawa-naha-terrace-017',
+  'okinawa-chatan-sunset-018',
+]);
+
 export const hotels: Hotel[] = seeds.map(buildHotel);
+
+function createSummerLastCallHotel(hotel: Hotel): Hotel {
+  return {
+    ...hotel,
+    originalPrice: hotel.pricePerNight,
+    pricePerNight: Math.round(hotel.pricePerNight * 0.9),
+    rooms: hotel.rooms.map((room) => ({
+      ...room,
+      originalPrice: room.pricePerNight,
+      pricePerNight: Math.round(room.pricePerNight * 0.9),
+    })),
+  };
+}
+
+const summerLastCallHotels = hotels
+  .filter((hotel) => SUMMER_LASTCALL_HOTEL_IDS.has(hotel.id))
+  .map(createSummerLastCallHotel);
+
+const summerLastCallHotelsById = new Map(
+  summerLastCallHotels.map((hotel) => [hotel.id, hotel]),
+);
+
+export function getHotelsForDeal(deal?: string): Hotel[] {
+  return deal === SUMMER_LASTCALL_DEAL ? summerLastCallHotels : hotels;
+}
+
+export function getHotelForDeal(hotelId: string, deal?: string): Hotel | undefined {
+  if (deal === SUMMER_LASTCALL_DEAL) {
+    return summerLastCallHotelsById.get(hotelId);
+  }
+
+  return hotels.find((hotel) => hotel.id === hotelId);
+}
 
 export const amenityFilters = ['무료 Wi-Fi', '조식 가능', '수영장', '주차 가능', '피트니스 센터', '반려동물 동반 가능'];
 

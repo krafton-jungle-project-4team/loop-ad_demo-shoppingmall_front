@@ -47,6 +47,9 @@ function createFallbackBooking(): StoredBooking {
 export function BookingCompletePage() {
   const [storedBooking] = useState<StoredBooking | null>(() => getLastBooking());
   const booking = useMemo(() => storedBooking || createFallbackBooking(), [storedBooking]);
+  const hotelDetailPath = booking.deal
+    ? `/hotel/${booking.hotelId}?deal=${encodeURIComponent(booking.deal)}`
+    : `/hotel/${booking.hotelId}`;
   const paymentLabel = booking.paymentOption === 'now' ? '지금 결제' : '숙소에서 결제';
 
   return (
@@ -91,7 +94,7 @@ export function BookingCompletePage() {
               <Search size={18} aria-hidden="true" />
               다른 숙소 찾아보기
             </Link>
-            <Link className={buttonClassName({ variant: 'ghost', className: 'flex-1', size: 'lg' })} to={`/hotel/${booking.hotelId}`}>
+            <Link className={buttonClassName({ variant: 'ghost', className: 'flex-1', size: 'lg' })} to={hotelDetailPath}>
               <Hotel size={18} aria-hidden="true" />
               숙소 다시 보기
             </Link>

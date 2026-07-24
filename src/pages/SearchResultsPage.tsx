@@ -1,5 +1,5 @@
 import { Filter } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AdSlot } from '../components/ads/AdSlot';
 import { Button } from '../components/common/Button';
@@ -10,7 +10,11 @@ import { HotelCard } from '../components/hotel/HotelCard';
 import { FilterSidebar } from '../components/results/FilterSidebar';
 import { SortDropdown } from '../components/results/SortDropdown';
 import { SearchSummaryBar } from '../components/search/SearchSummaryBar';
-import { BLACK_FRIDAY_HOTEL_IDS, hotels } from '../data/hotels';
+import {
+  BLACK_FRIDAY_HOTEL_IDS,
+  SUMMER_LASTCALL_DEAL,
+  getHotelsForDeal,
+} from '../data/hotels';
 import type { Hotel } from '../types/hotel';
 import type { Filters, PriceBucket, SortOption } from '../types/search';
 import { getDestinationName } from '../utils/searchParams';
@@ -47,7 +51,7 @@ function matchesFilters(hotel: Hotel, filters: Filters): boolean {
 
 function sortHotels(items: Hotel[], sortOption: SortOption, deal?: string): Hotel[] {
   return [...items].sort((left, right) => {
-    if (deal === 'summer') {
+    if (deal === 'summer' || deal === SUMMER_LASTCALL_DEAL) {
       const leftDealScore = left.originalPrice ? 1 : 0;
       const rightDealScore = right.originalPrice ? 1 : 0;
 
@@ -61,6 +65,43 @@ function sortHotels(items: Hotel[], sortOption: SortOption, deal?: string): Hote
 
     return right.guestRating * 100 + right.reviewCount / 100 - (left.guestRating * 100 + left.reviewCount / 100);
   });
+}
+
+function getResultsEyebrow(deal: string | undefined, destinationName: string): string {
+  if (deal === SUMMER_LASTCALL_DEAL) {
+    return '제주·오키나와 블랙프라이데이 D-3 추가 할인';
+  }
+
+  if (deal === 'summer') {
+    return '제주·오키나와 블랙프라이데이';
+  }
+
+  return `${destinationName} 숙소`;
+}
+
+function getVisibleHotels({
+  deal,
+  destination,
+  filters,
+  sortOption,
+}: {
+  deal?: string;
+  destination: string;
+  filters: Filters;
+  sortOption: SortOption;
+}): Hotel[] {
+  const dealHotels = getHotelsForDeal(deal);
+  const destinationHotels = destination
+    ? dealHotels.filter((hotel) => hotel.destinationId === destination)
+    : dealHotels;
+  const dealAwareHotels = deal === 'summer'
+    ? destinationHotels.filter((hotel) => BLACK_FRIDAY_HOTEL_IDS.has(hotel.id))
+    : destinationHotels;
+  const shouldUseDestinationFallback = deal !== SUMMER_LASTCALL_DEAL && dealAwareHotels.length === 0;
+  const sourceHotels = shouldUseDestinationFallback ? destinationHotels : dealAwareHotels;
+  const filteredHotels = sourceHotels.filter((hotel) => matchesFilters(hotel, filters));
+
+  return sortHotels(filteredHotels, sortOption, deal);
 }
 
 function ResultsPromotionBanner() {
@@ -77,18 +118,13 @@ export function SearchResultsPage() {
   const [sortOption, setSortOption] = useState<SortOption>('recommended');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const searchState = parseSearchParams(searchParams);
-  const destinationName = getDestinationName(searchState.destination);
+  const { deal, destination } = searchState;
+  const destinationName = getDestinationName(destination);
+  const isPromotionDeal = deal === 'summer' || deal === SUMMER_LASTCALL_DEAL;
 
-  const visibleHotels = useMemo(() => {
-    const destinationHotels = searchState.destination ? hotels.filter((hotel) => hotel.destinationId === searchState.destination) : hotels;
-    const dealAwareHotels = searchState.deal === 'summer' ? destinationHotels.filter((hotel) => BLACK_FRIDAY_HOTEL_IDS.has(hotel.id)) : destinationHotels;
-    const sourceHotels = dealAwareHotels.length > 0 ? dealAwareHotels : destinationHotels;
-    const filteredHotels = sourceHotels.filter((hotel) => matchesFilters(hotel, filters));
+  const visibleHotels = getVisibleHotels({ deal, destination, filters, sortOption });
 
-    return sortHotels(filteredHotels, sortOption, searchState.deal);
-  }, [filters, searchState.deal, searchState.destination, sortOption]);
-
-  const displayCount = searchState.deal === 'summer' ? visibleHotels.length : visibleHotels.length ? visibleHotels.length + 180 : 0;
+  const displayCount = isPromotionDeal ? visibleHotels.length : visibleHotels.length ? visibleHotels.length + 180 : 0;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -103,7 +139,7 @@ export function SearchResultsPage() {
         <PageContainer className="py-5">
           <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-loop-700">{searchState.deal === 'summer' ? '제주·오키나와 블랙프라이데이' : `${destinationName} 숙소`}</p>
+              <p className="text-sm font-semibold text-loop-700">{getResultsEyebrow(deal, destinationName)}</p>
               <h2 className="mt-1 text-2xl font-bold text-ink-900">{displayCount.toLocaleString('ko-KR')}개 숙소를 비교해보세요</h2>
             </div>
             <div className="flex flex-wrap gap-2">

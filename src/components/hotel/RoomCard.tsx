@@ -1,5 +1,6 @@
 import { CheckCircle2, UsersRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SUMMER_LASTCALL_DEAL } from '../../data/hotels';
 import type { Hotel, Room } from '../../types/hotel';
 import type { SearchState } from '../../types/search';
 import { formatCurrency } from '../../utils/format';
@@ -15,6 +16,7 @@ type RoomCardProps = {
 };
 
 export function RoomCard({ hotel, room, searchState }: RoomCardProps) {
+  const isLastCallDeal = searchState.deal === SUMMER_LASTCALL_DEAL;
   const price = calculatePrice({
     pricePerNight: room.pricePerNight,
     originalPrice: room.originalPrice,
@@ -59,9 +61,16 @@ export function RoomCard({ hotel, room, searchState }: RoomCardProps) {
         </ul>
       </div>
       <div className="flex flex-col justify-end border-t border-slate-100 p-4 text-right md:border-l md:border-t-0">
-        {room.originalPrice ? <p className="text-sm text-ink-500 line-through">{formatCurrency(room.originalPrice)}</p> : null}
-        <p className="text-sm font-semibold text-ink-500">1박</p>
-        <p className="text-2xl font-bold text-ink-900">{formatCurrency(room.pricePerNight)}</p>
+        {room.originalPrice && isLastCallDeal ? (
+          <p className="text-sm text-ink-500">
+            기존 프로모션가 <span className="line-through">{formatCurrency(room.originalPrice)}</span>
+          </p>
+        ) : null}
+        {room.originalPrice && !isLastCallDeal ? <p className="text-sm text-ink-500 line-through">{formatCurrency(room.originalPrice)}</p> : null}
+        <p className={isLastCallDeal ? 'text-sm font-semibold text-rose-600' : 'text-sm font-semibold text-ink-500'}>
+          {isLastCallDeal ? 'D-3 최종 할인가 · 1박' : '1박'}
+        </p>
+        <p className={isLastCallDeal ? 'text-2xl font-bold text-rose-700' : 'text-2xl font-bold text-ink-900'}>{formatCurrency(room.pricePerNight)}</p>
         <p className="mt-1 text-sm text-ink-500">총 {formatCurrency(price.total)}</p>
         <Link className={buttonClassName({ className: 'mt-4 w-full' })} to={checkoutPath}>
           예약하기
